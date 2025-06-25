@@ -31,10 +31,13 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _backupCancellationTokenSource;
     private bool _isBackupRunning = false;
 
-    public MainWindow()
+public MainWindow()
     {
         InitializeComponent();
         InitializeCollections();
+
+        // Register Loaded event
+        this.Loaded += MainWindow_Loaded;
 
         // Flush any logs that were created before UI was ready
         FlushPendingLogs();
@@ -47,12 +50,12 @@ public partial class MainWindow : Window
         _ = InitializePowerShellAsync();
     }
 
-    private void InitializeCollections()
-    {
-        // Bind collections to UI elements
-        MigrationProgressGrid.ItemsSource = MigrationTasks;
-        // REMOVED: ValidationResultsGrid binding (doesn't exist in XAML)
-    }
+private void InitializeCollections()
+{
+    // Bind collections to UI elements
+    MigrationProgressGrid.ItemsSource = MigrationTasks;
+    ValidationResultsGrid.ItemsSource = ValidationResults;
+}
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
@@ -83,6 +86,8 @@ public partial class MainWindow : Window
     }
 
     // FIXED: Single PowerShell initialization method with proper event subscription
+
+    
     private async Task InitializePowerShellAsync()
     {
         try
@@ -98,6 +103,14 @@ public partial class MainWindow : Window
 
             await _powerShellManager.InitializeAsync();
             WriteLog("✅ PowerShell environment initialized successfully", "INFO");
+
+            // Enable connection buttons now that initialization is complete
+            Dispatcher.Invoke(() => 
+            {
+                ConnectSourceButton.IsEnabled = true;
+                ConnectDestButton.IsEnabled = true;
+                WriteLog("✅ Connection buttons enabled - ready to connect", "INFO");
+            });
         }
         catch (Exception ex)
         {
@@ -165,13 +178,60 @@ public partial class MainWindow : Window
         }
     }
     #endregion
+   
+    private void InventoryTreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is TreeViewItem item)
+        {
+            // Enable migration buttons based on selection type
+            string header = item.Header.ToString() ?? "";
+            
+            // Enable appropriate migration buttons based on selection type
+            MigrateHostButton.IsEnabled = header.StartsWith("🖥️");
+            MigrateVMButton.IsEnabled = header.StartsWith("💻");
+            MigrateClusterButton.IsEnabled = header.StartsWith("🏢");
+        }
+    }  
+    private List<string> GetSelectedHosts()
+    {
+        var selectedHosts = new List<string>();
+
+        // Get selected items from InventoryTreeView
+        foreach (TreeViewItem item in InventoryTreeView.Items)
+        {
+            GetSelectedHostsRecursive(item, selectedHosts);
+        }
+
+        return selectedHosts;
+    }
+
+    private void GetSelectedHostsRecursive(TreeViewItem item, List<string> selectedHosts)
+{
+    if (item.IsSelected && item.Header.ToString()?.StartsWith("🖥️") == true)
+    {
+        // Extract host name from header (remove the emoji prefix)
+        string hostName = item.Header.ToString()!.Substring(3).Trim();
+        selectedHosts.Add(hostName);
+    }
+    
+    // Check child items
+    foreach (var childItem in item.Items)
+    {
+        if (childItem is TreeViewItem treeItem)
+        {
+            GetSelectedHostsRecursive(treeItem, selectedHosts);
+        }
+    }
+}
 
     #region Connection Event Handlers
     private async void ConnectSource_Click(object sender, RoutedEventArgs e)
     {
-        if (_powerShellManager is null)
+        if (_powerShellManager is null || !_powerShellManager.IsPowerShellInitialized)
         {
-            WriteLog("❌ PowerShell manager not initialized", "ERROR");
+            WriteLog("❌ PowerShell manager not initialized yet. Please wait...", "ERROR");
+            MessageBox.Show("PowerShell environment is still initializing. Please wait a moment and try again.", 
+                        "Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -217,9 +277,11 @@ public partial class MainWindow : Window
 
     private async void ConnectDest_Click(object sender, RoutedEventArgs e)
     {
-        if (_powerShellManager is null)
+        if (_powerShellManager is null || !_powerShellManager.IsPowerShellInitialized)
         {
-            WriteLog("❌ PowerShell manager not initialized", "ERROR");
+            WriteLog("❌ PowerShell manager not initialized yet. Please wait...", "ERROR");
+            MessageBox.Show("PowerShell environment is still initializing. Please wait a moment and try again.", 
+                          "Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -442,6 +504,7 @@ public partial class MainWindow : Window
 
         WriteLog("✅ Disconnected from all vCenters", "INFO");
     }
+
     #endregion
 
     #region Backup Event Handlers
@@ -1070,32 +1133,75 @@ public partial class MainWindow : Window
 
     private void PauseMigration_Click(object sender, RoutedEventArgs e)
     {
-        // Implement pause logic
+        WriteLog("⏸️ Migration paused", "INFO");
     }
 
     private void StopMigration_Click(object sender, RoutedEventArgs e)
     {
-        // Implement stop logic
+        WriteLog("⏹️ Migration stopped", "WARNING");
     }
 
     private void ExportReport_Click(object sender, RoutedEventArgs e)
     {
-        // Export migration report to CSV/JSON
+        WriteLog("📊 Exporting migration report...", "INFO");
     }
-    private void MigrateVM_Click(object sender, RoutedEventArgs e)
+    private async void MigrateVM_Click(object sender, RoutedEventArgs e)
     {
-        WriteLog("💻 VM migration functionality will be implemented", "INFO");
-        MessageBox.Show("VM migration functionality will be implemented here.", "Migration",
-                      MessageBoxButton.OK, MessageBoxImage.Information);
+        try
+        {
+            // Get selected VMs from inventory
+            var selectedVMs = GetSelectedVMs();
+
+            if (selectedVMs.Count == 0)
+            {
+                MessageBox.Show("Please select VMs to migrate", "No Selection", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Prepare migration tasks
+            var migrationTasks = await _powerShellManager.PrepareMigrationAsync(MigrationType.VM, selectedVMs);
+
+            // Bind to DataGrid
+            MigrationProgressGrid.ItemsSource = migrationTasks;
+
+            // Start migration process
+            await StartMigrationAsync(migrationTasks);
+        }
+        catch (Exception ex)
+        {
+            WriteLog($"❌ VM migration failed: {ex.Message}", "ERROR");
+            MessageBox.Show($"Migration failed: {ex.Message}", "Migration Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
-    private void MigrateCluster_Click(object sender, RoutedEventArgs e)
+    private async void MigrateCluster_Click(object sender, RoutedEventArgs e)
     {
-        WriteLog("🏢 Cluster migration functionality will be implemented", "INFO");
-        MessageBox.Show("Cluster migration functionality will be implemented here.", "Migration",
-                      MessageBoxButton.OK, MessageBoxImage.Information);
-    }
+        try
+        {
+            // Get selected clusters from inventory
+            var selectedClusters = GetSelectedClusters();
 
+            if (selectedClusters.Count == 0)
+            {
+                MessageBox.Show("Please select clusters to migrate", "No Selection", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Prepare migration tasks
+            var migrationTasks = await _powerShellManager.PrepareMigrationAsync(MigrationType.Cluster, selectedClusters);
+
+            // Bind to DataGrid
+            MigrationProgressGrid.ItemsSource = migrationTasks;
+
+            // Start migration process
+            await StartMigrationAsync(migrationTasks);
+        }
+        catch (Exception ex)
+        {
+            WriteLog($"❌ Cluster migration failed: {ex.Message}", "ERROR");
+            MessageBox.Show($"Migration failed: {ex.Message}", "Migration Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
     private void BatchMigrate_Click(object sender, RoutedEventArgs e)
     {
         WriteLog("📦 Starting batch migration...", "INFO");
@@ -1112,20 +1218,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PauseMigration_Click(object sender, RoutedEventArgs e)
-    {
-        WriteLog("⏸️ Migration paused", "INFO");
-    }
-
-    private void StopMigration_Click(object sender, RoutedEventArgs e)
-    {
-        WriteLog("⏹️ Migration stopped", "WARNING");
-    }
-
-    private void ExportReport_Click(object sender, RoutedEventArgs e)
-    {
-        WriteLog("📊 Exporting migration report...", "INFO");
-    }
     #endregion
 
     #region Utility Event Handlers
@@ -1229,6 +1321,70 @@ public partial class MainWindow : Window
         {
             File.WriteAllText(dialog.FileName, LogTextBox.Text);
             WriteLog($"💾 Log saved to: {dialog.FileName}", "INFO");
+        }
+    }
+
+    private List<string> GetSelectedVMs()
+    {
+        var selectedVMs = new List<string>();
+        
+        // Get selected items from InventoryTreeView
+        foreach (TreeViewItem item in InventoryTreeView.Items)
+        {
+            GetSelectedVMsRecursive(item, selectedVMs);
+        }
+        
+        return selectedVMs;
+    }
+
+    private void GetSelectedVMsRecursive(TreeViewItem item, List<string> selectedVMs)
+    {
+        if (item.IsSelected && item.Header.ToString()?.StartsWith("💻") == true)
+        {
+            // Extract VM name from header (remove the emoji prefix)
+            string vmName = item.Header.ToString()!.Substring(3).Trim();
+            selectedVMs.Add(vmName);
+        }
+        
+        // Check child items
+        foreach (var childItem in item.Items)
+        {
+            if (childItem is TreeViewItem treeItem)
+            {
+                GetSelectedVMsRecursive(treeItem, selectedVMs);
+            }
+        }
+    }
+
+    private List<string> GetSelectedClusters()
+    {
+        var selectedClusters = new List<string>();
+        
+        // Get selected items from InventoryTreeView
+        foreach (TreeViewItem item in InventoryTreeView.Items)
+        {
+            GetSelectedClustersRecursive(item, selectedClusters);
+        }
+        
+        return selectedClusters;
+    }
+
+    private void GetSelectedClustersRecursive(TreeViewItem item, List<string> selectedClusters)
+    {
+        if (item.IsSelected && item.Header.ToString()?.StartsWith("🏢") == true)
+        {
+            // Extract cluster name from header (remove the emoji prefix)
+            string clusterName = item.Header.ToString()!.Substring(3).Trim();
+            selectedClusters.Add(clusterName);
+        }
+        
+        // Check child items
+        foreach (var childItem in item.Items)
+        {
+            if (childItem is TreeViewItem treeItem)
+            {
+                GetSelectedClustersRecursive(treeItem, selectedClusters);
+            }
         }
     }
     #endregion
@@ -1341,11 +1497,11 @@ public partial class MainWindow : Window
         ValidationResults.Clear();
 
         var testResults = new List<ValidationResult>
-    {
-        new() { TestName = "Connectivity Test", Result = "✅ Passed", Details = "All connections successful", Recommendation = "None" },
-        new() { TestName = "Version Check", Result = "✅ Passed", Details = "Compatible versions detected", Recommendation = "None" },
-        new() { TestName = "Resource Check", Result = "⚠️ Warning", Details = "Low disk space on destination", Recommendation = "Free up 50GB disk space" }
-    };
+        {
+            new() { TestName = "Connectivity Test", Result = "✅ Passed", Details = "All connections successful", Recommendation = "None" },
+            new() { TestName = "Version Check", Result = "✅ Passed", Details = "Compatible versions detected", Recommendation = "None" },
+            new() { TestName = "Resource Check", Result = "⚠️ Warning", Details = "Low disk space on destination", Recommendation = "Free up 50GB disk space" }
+        };
 
         foreach (var result in testResults)
         {

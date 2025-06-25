@@ -398,7 +398,8 @@
                             <GroupBox Header="📊 vCenter Inventory" Grid.Row="1" BorderBrush="#FFDDDDDD" BorderThickness="1">
                                 <ScrollViewer>
                                     <!-- Add a ScrollViewer as the single child -->
-                                    <TreeView Name="InventoryTreeView" Margin="5" Background="White" FontSize="11"/>
+                                    <TreeView Name="InventoryTreeView" Margin="5" Background="White" FontSize="11" 
+                                        SelectedItemChanged="InventoryTreeView_SelectedItemChanged"/>
                                 </ScrollViewer>
                             </GroupBox>
 

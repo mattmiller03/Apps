@@ -15,6 +15,7 @@ public class PowerShellManager : IDisposable
     public bool IsSourceConnected { get; private set; }
     public bool IsDestinationConnected { get; private set; }
     public bool IsPowerCLIAvailable { get; private set; }
+    public bool IsPowerShellInitialized { get; private set; } = false;
 
     // Event for logging
     public event Action<string, string>? LogMessage;
@@ -31,6 +32,7 @@ public class PowerShellManager : IDisposable
             try
             {
                 WriteLog("🔧 Initializing PowerShell environment...", "INFO");
+                IsPowerShellInitialized = false; // Explicitly set to false at start
 
                 var initialSessionState = InitialSessionState.CreateDefault();
                 _runspace = RunspaceFactory.CreateRunspace(initialSessionState);
@@ -58,6 +60,8 @@ public class PowerShellManager : IDisposable
                         ExecuteCommand("Set-PowerCLIConfiguration -DefaultVIServerMode Multiple -Confirm:$false");
 
                         WriteLog("✅ PowerCLI configured successfully", "INFO");
+                        IsPowerShellInitialized = true;
+                        WriteLog("✅ PowerShell manager initialization complete", "INFO");
                     }
                     else
                     {
@@ -66,8 +70,8 @@ public class PowerShellManager : IDisposable
                 }
                 catch (Exception ex)
                 {
-                    WriteLog($"⚠️ PowerCLI check failed: {ex.Message} - will run in simulation mode", "WARNING");
-                    IsPowerCLIAvailable = false;
+                    WriteLog($"❌ Failed to initialize PowerShell environment: {ex.Message}", "ERROR");
+                    throw new InvalidOperationException($"Failed to initialize PowerShell environment: {ex.Message}", ex);
                 }
             }
             catch (Exception ex)
@@ -497,26 +501,361 @@ VM:DevVM02 (PoweredOff)";
         }
     }
 
+
     public async Task BackupUsersAndGroupsAsync(string backupPath, CancellationToken cancellationToken = default, Action<string>? progressCallback = null)
     {
-        WriteLog("👥 Starting Users and Groups backup...", "INFO");
+        WriteLog("👥 Starting comprehensive Users and Groups backup...", "INFO");
         progressCallback?.Invoke("Initializing Users and Groups backup...");
 
         var command = $@"
-            try {{
-                $usersPath = Join-Path '{backupPath}' 'UsersAndGroups'
-                New-Item -Path $usersPath -ItemType Directory -Force | Out-Null
-                Write-Output ""Created Users and Groups backup directory""
+        try {{
+            $usersPath = Join-Path '{backupPath}' 'UsersAndGroups'
+            New-Item -Path $usersPath -ItemType Directory -Force | Out-Null
+            Write-Output ""Created Users and Groups backup directory""
+            
+            if (Get-Module -Name VMware.PowerCLI -ListAvailable -ErrorAction SilentlyContinue) {{
+                if ($global:SourceVIServer -and $global:SourceVIServer.IsConnected) {{
+                    Write-Output ""PROGRESS:Connecting to SSO domain...""
+                    
+                    # Check if we have access to SSO cmdlets
+                    $ssoAdminAvailable = $false
+                    try {{
+                        $null = Get-Command Get-SsoAdminServiceInstance -ErrorAction Stop
+                        $ssoAdminAvailable = $true
+                        Write-Output ""PROGRESS:SSO Admin module is available""
+                    }} catch {{
+                        Write-Output ""PROGRESS:SSO Admin module not available, will use limited backup capabilities""
+                    }}
+                    
+                    if ($ssoAdminAvailable) {{
+                        # Connect to SSO Admin Service
+                        Write-Output ""PROGRESS:Connecting to SSO Admin Service...""
+                        try {{
+                            $ssoAdminInstance = Get-SsoAdminServiceInstance -Server $global:SourceVIServer.Name
+                            $ssoConnection = Connect-SsoAdminServer -Server $ssoAdminInstance -SkipCertificateCheck -ErrorAction Stop
+                            Write-Output ""PROGRESS:Successfully connected to SSO Admin Service""
+                            
+                            # Get SSO Domains
+                            Write-Output ""PROGRESS:Retrieving SSO domains...""
+                            $ssoDomains = Get-SsoAdminDomain -Server $ssoConnection
+                            Write-Output ""Found $($ssoDomains.Count) SSO domains""
+                            
+                            $domainData = @()
+                            foreach ($domain in $ssoDomains) {{
+                                $domainInfo = @{{
+                                    Name = $domain.Name
+                                    Alias = $domain.Alias
+                                    UserCount = 0
+                                    GroupCount = 0
+                                }}
+                                $domainData += $domainInfo
+                            }}
+                            
+                            # Export domain information
+                            Write-Output ""PROGRESS:Saving SSO domain information...""
+                            $domainsFile = Join-Path $usersPath ""SSODomains.json""
+                            $domainData | ConvertTo-Json -Depth 10 | Out-File -FilePath $domainsFile -Encoding UTF8
+                            
+                            # Get SSO Users
+                            Write-Output ""PROGRESS:Retrieving SSO users...""
+                            $allUsers = @()
+                            
+                            foreach ($domain in $ssoDomains) {{
+                                Write-Output ""PROGRESS:Processing users in domain: $($domain.Name)""
+                                $users = Get-SsoAdminUser -Server $ssoConnection -Domain $domain.Name
+                                Write-Output ""Found $($users.Count) users in domain $($domain.Name)""
+                                
+                                foreach ($user in $users) {{
+                                    Write-Output ""PROGRESS:Processing user: $($user.Name)""
+                                    $userDetails = @{{
+                                        Name = $user.Name
+                                        Domain = $domain.Name
+                                        Description = $user.Description
+                                        EmailAddress = $user.EmailAddress
+                                        FirstName = $user.FirstName
+                                        LastName = $user.LastName
+                                        UserPrincipalName = $user.UserPrincipalName
+                                        Locked = $user.Locked
+                                        Disabled = $user.Disabled
+                                    }}
+                                    $allUsers += $userDetails
+                                }}
+                            }}
+                            
+                            # Export users
+                            Write-Output ""PROGRESS:Saving SSO users information...""
+                            $usersFile = Join-Path $usersPath ""SSOUsers.json""
+                            $allUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $usersFile -Encoding UTF8
+                            Write-Output ""Exported $($allUsers.Count) SSO users""
+                            
+                            # Get SSO Groups
+                            Write-Output ""PROGRESS:Retrieving SSO groups...""
+                            $allGroups = @()
+                            
+                            foreach ($domain in $ssoDomains) {{
+                                Write-Output ""PROGRESS:Processing groups in domain: $($domain.Name)""
+                                $groups = Get-SsoAdminGroup -Server $ssoConnection -Domain $domain.Name
+                                Write-Output ""Found $($groups.Count) groups in domain $($domain.Name)""
+                                
+                                foreach ($group in $groups) {{
+                                    Write-Output ""PROGRESS:Processing group: $($group.Name)""
+                                    
+                                    # Get group members
+                                    $members = Get-SsoAdminGroupMember -Server $ssoConnection -Domain $domain.Name -Name $group.Name
+                                    
+                                    $groupDetails = @{{
+                                        Name = $group.Name
+                                        Domain = $domain.Name
+                                        Description = $group.Description
+                                        Members = @($members | ForEach-Object {{ 
+                                            @{{ 
+                                                Name = $_.Name
+                                                Domain = $_.Domain
+                                                Type = $_.PrincipalType
+                                            }} 
+                                        }})
+                                    }}
+                                    $allGroups += $groupDetails
+                                }}
+                            }}
+                            
+                            # Export groups
+                            Write-Output ""PROGRESS:Saving SSO groups information...""
+                            $groupsFile = Join-Path $usersPath ""SSOGroups.json""
+                            $allGroups | ConvertTo-Json -Depth 10 | Out-File -FilePath $groupsFile -Encoding UTF8
+                            Write-Output ""Exported $($allGroups.Count) SSO groups""
+                            
+                            # Get SSO Identity Sources
+                            Write-Output ""PROGRESS:Retrieving SSO identity sources...""
+                            try {{
+                                $identitySources = Get-SsoAdminIdentitySource -Server $ssoConnection
+                                Write-Output ""Found $($identitySources.Count) identity sources""
+                                
+                                $identitySourceDetails = @()
+                                foreach ($source in $identitySources) {{
+                                    $sourceDetails = @{{
+                                        Name = $source.Name
+                                        Type = $source.Type
+                                        Alias = $source.Alias
+                                        Domain = $source.Domain
+                                        UserBaseDN = $source.UserBaseDN
+                                        GroupBaseDN = $source.GroupBaseDN
+                                        PrimaryURL = $source.PrimaryURL
+                                        FailoverURL = $source.FailoverURL
+                                    }}
+                                    $identitySourceDetails += $sourceDetails
+                                }}
+                                
+                                # Export identity sources
+                                Write-Output ""PROGRESS:Saving SSO identity sources information...""
+                                $identitySourcesFile = Join-Path $usersPath ""SSOIdentitySources.json""
+                                $identitySourceDetails | ConvertTo-Json -Depth 10 | Out-File -FilePath $identitySourcesFile -Encoding UTF8
+                                Write-Output ""Exported $($identitySourceDetails.Count) SSO identity sources""
+                            }} catch {{
+                                Write-Output ""PROGRESS:Could not retrieve identity sources: $($_.Exception.Message)""
+                            }}
+                            
+                            # Disconnect from SSO Admin
+                            Disconnect-SsoAdminServer -Server $ssoConnection -Confirm:$false
+                        }} catch {{
+                            Write-Output ""PROGRESS:Error connecting to SSO Admin Service: $($_.Exception.Message)""
+                            Write-Output ""PROGRESS:Falling back to basic user information collection""
+                        }}
+                    }}
+                    
+                    # Get vCenter Permissions (works even without SSO Admin access)
+                    Write-Output ""PROGRESS:Retrieving vCenter permissions...""
+                    $permissions = Get-VIPermission -Server $global:SourceVIServer
+                    Write-Output ""Found $($permissions.Count) permission assignments""
+                    
+                    $permissionDetails = @()
+                    foreach ($perm in $permissions) {{
+                        try {{
+                            $permDetail = @{{
+                                Entity = $perm.Entity.Name
+                                EntityType = $perm.Entity.GetType().Name
+                                Principal = $perm.Principal
+                                Role = $perm.Role
+                                Propagate = $perm.Propagate
+                                IsGroup = $perm.IsGroup
+                            }}
+                            $permissionDetails += $permDetail
+                        }} catch {{
+                            Write-Output ""PROGRESS:Error processing permission: $($_.Exception.Message)""
+                        }}
+                    }}
+                    
+                    # Export permissions
+                    Write-Output ""PROGRESS:Saving vCenter permissions information...""
+                    $permissionsFile = Join-Path $usersPath ""VCenterPermissions.json""
+                    $permissionDetails | ConvertTo-Json -Depth 10 | Out-File -FilePath $permissionsFile -Encoding UTF8
+                    Write-Output ""Exported $($permissionDetails.Count) vCenter permissions""
+                    
+                    # Get vCenter Roles
+                    Write-Output ""PROGRESS:Retrieving vCenter roles with privileges...""
+                    $roles = Get-VIRole -Server $global:SourceVIServer
+                    Write-Output ""Found $($roles.Count) roles""
+                    
+                    $roleDetails = @()
+                    foreach ($role in $roles) {{
+                        $roleDetail = @{{
+                            Name = $role.Name
+                            Description = $role.Description
+                            IsSystem = $role.IsSystem
+                            PrivilegeList = @($role.PrivilegeList)
+                        }}
+                        $roleDetails += $roleDetail
+                    }}
+                    
+                    # Export roles
+                    Write-Output ""PROGRESS:Saving vCenter roles information...""
+                    $rolesFile = Join-Path $usersPath ""VCenterRoles.json""
+                    $roleDetails | ConvertTo-Json -Depth 10 | Out-File -FilePath $rolesFile -Encoding UTF8
+                    Write-Output ""Exported $($roleDetails.Count) vCenter roles""
+                    
+                    # Create a summary file
+                    $summary = @{{
+                        Timestamp = Get-Date -Format ""yyyy-MM-dd HH:mm:ss""
+                        Server = $global:SourceVIServer.Name
+                        UserCount = if ($null -ne $allUsers) {{ $allUsers.Count }} else {{ 0 }}
+                        GroupCount = if ($null -ne $allGroups) {{ $allGroups.Count }} else {{ 0 }}
+                        RoleCount = $roleDetails.Count
+                        PermissionCount = $permissionDetails.Count
+                    }}
+                    
+                    $summaryFile = Join-Path $usersPath ""Summary.json""
+                    $summary | ConvertTo-Json -Depth 10 | Out-File -FilePath $summaryFile -Encoding UTF8
+                    
+                    Write-Output ""Users and Groups backup completed successfully""
+                }} else {{
+                    Write-Output ""PROGRESS:Creating simulated users and groups backup (no vCenter connection)""
+                    
+                    # Simulated SSO Users
+                    $simulatedUsers = @(
+                        @{{
+                            Name = 'administrator'
+                            Domain = 'vsphere.local'
+                            Description = 'Built-in administrator'
+                            EmailAddress = 'admin@company.com'
+                            FirstName = 'System'
+                            LastName = 'Administrator'
+                            UserPrincipalName = 'administrator@vsphere.local'
+                            Disabled = $false
+                            Locked = $false
+                        }},
+                        @{{
+                            Name = 'john.doe'
+                            Domain = 'vsphere.local'
+                            Description = 'IT Administrator'
+                            EmailAddress = 'john.doe@company.com'
+                            FirstName = 'John'
+                            LastName = 'Doe'
+                            UserPrincipalName = 'john.doe@vsphere.local'
+                            Disabled = $false
+                            Locked = $false
+                        }}
+                    )
+                    
+                    # Simulated Roles
+                    $simulatedRoles = @(
+                        @{{
+                            Name = 'Administrator'
+                            Description = 'Full access rights'
+                            IsSystem = $true
+                            PrivilegeList = @(
+                                'System.Anonymous',
+                                'System.View',
+                                'System.Read',
+                                'Global.ManageCustomFields'
+                            )
+                        }},
+                        @{{
+                            Name = 'ReadOnly'
+                            Description = 'Read-only access'
+                            IsSystem = $true
+                            PrivilegeList = @(
+                                'System.Anonymous',
+                                'System.View',
+                                'System.Read'
+                            )
+                        }}
+                    )
+                    
+                    # Simulated Permissions
+                    $simulatedPermissions = @(
+                        @{{
+                            Entity = 'vcenter7.domain.local'
+                            EntityType = 'VirtualCenter'
+                            Principal = 'administrator@vsphere.local'
+                            Role = 'Administrator'
+                            Propagate = $true
+                            IsGroup = $false
+                        }},
+                        @{{
+                            Entity = 'Datacenter1'
+                            EntityType = 'Datacenter'
+                            Principal = 'john.doe@vsphere.local'
+                            Role = 'ReadOnly'
+                            Propagate = $true
+                            IsGroup = $false
+                        }}
+                    )
+                    
+                    Write-Output ""PROGRESS:Saving simulated SSO users...""
+                    $usersFile = Join-Path $usersPath ""SSOUsers.json""
+                    $simulatedUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $usersFile -Encoding UTF8
+                    
+                    Write-Output ""PROGRESS:Saving simulated SSO groups...""
+                    $groupsFile = Join-Path $usersPath ""SSOGroups.json""
+                    $simulatedGroups | ConvertTo-Json -Depth 10 | Out-File -FilePath $groupsFile -Encoding UTF8
+                    
+                    Write-Output ""PROGRESS:Saving simulated vCenter roles...""
+                    $rolesFile = Join-Path $usersPath ""VCenterRoles.json""
+                    $simulatedRoles | ConvertTo-Json -Depth 10 | Out-File -FilePath $rolesFile -Encoding UTF8
+                    
+                    Write-Output ""PROGRESS:Saving simulated vCenter permissions...""
+                    $permissionsFile = Join-Path $usersPath ""VCenterPermissions.json""
+                    $simulatedPermissions | ConvertTo-Json -Depth 10 | Out-File -FilePath $permissionsFile -Encoding UTF8
+                    
+                    # Create a simulated summary file
+                    $summary = @{{
+                        Timestamp = Get-Date -Format ""yyyy-MM-dd HH:mm:ss""
+                        Server = ""vcenter7.domain.local (Simulated)""
+                        UserCount = $simulatedUsers.Count
+                        GroupCount = $simulatedGroups.Count
+                        RoleCount = $simulatedRoles.Count
+                        PermissionCount = $simulatedPermissions.Count
+                    }}
+                    
+                    $summaryFile = Join-Path $usersPath ""Summary.json""
+                    $summary | ConvertTo-Json -Depth 10 | Out-File -FilePath $summaryFile -Encoding UTF8
+                    
+                    Write-Output ""Simulated users and groups backup completed""
+                }}
+            }} else {{
+                Write-Output ""PROGRESS:Creating simulated users and groups backup (PowerCLI not available)""
                 
-                Write-Output ""PROGRESS:Simulating users and groups backup (SSO cmdlets require special permissions)""
-                
+                # Same simulated data as above
                 $simulatedUsers = @(
                     @{{
-                        Name = 'administrator@vsphere.local'
+                        Name = 'administrator'
+                        Domain = 'vsphere.local'
                         Description = 'Built-in administrator'
                         EmailAddress = 'admin@company.com'
                         FirstName = 'System'
                         LastName = 'Administrator'
+                        UserPrincipalName = 'administrator@vsphere.local'
+                        Disabled = $false
+                        Locked = $false
+                    }},
+                    @{{
+                        Name = 'john.doe'
+                        Domain = 'vsphere.local'
+                        Description = 'IT Administrator'
+                        EmailAddress = 'john.doe@company.com'
+                        FirstName = 'John'
+                        LastName = 'Doe'
+                        UserPrincipalName = 'john.doe@vsphere.local'
                         Disabled = $false
                         Locked = $false
                     }}
@@ -525,184 +864,116 @@ VM:DevVM02 (PoweredOff)";
                 $simulatedGroups = @(
                     @{{
                         Name = 'Administrators'
-                        Description = 'System administrators'
                         Domain = 'vsphere.local'
+                        Description = 'SSO Administrators group'
+                        Members = @(
+                            @{{ 
+                                Name = 'administrator'
+                                Domain = 'vsphere.local'
+                                Type = 'User'
+                            }}
+                        )
                     }}
                 )
                 
-                Write-Output ""PROGRESS:Saving SSO users configuration...""
-                $configFile = Join-Path $usersPath ""SSOUsers.json""
-                $simulatedUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
-                Write-Output ""Saved: SSOUsers.json""
-                
-                Write-Output ""PROGRESS:Saving SSO groups configuration...""
-                $configFile = Join-Path $usersPath ""SSOGroups.json""
-                $simulatedGroups | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
-                Write-Output ""Saved: SSOGroups.json""
-                
-                Write-Output ""Users and Groups backup completed""
-            }} catch {{
-                Write-Error ""Users and Groups backup failed: $($_.Exception.Message)""
-                throw
-            }}
-        ";
-
-        try
-        {
-            var result = await ExecuteCommandAsync(command, cancellationToken);
-            var lines = result.Split('\n');
-            foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
-            {
-                var trimmedLine = line.Trim();
-
-                if (trimmedLine.StartsWith("PROGRESS:"))
-                {
-                    var progressText = trimmedLine[9..];
-                    progressCallback?.Invoke(progressText);
-                }
-                else
-                {
-                    WriteLog($"👥 {trimmedLine}", "INFO");
-                }
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            WriteLog("🛑 Users and Groups backup was cancelled", "WARNING");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            WriteLog($"❌ Users and Groups backup failed: {ex.Message}", "ERROR");
-            throw;
-        }
-    }
-
-    public async Task BackupRolesAsync(string backupPath, CancellationToken cancellationToken = default, Action<string>? progressCallback = null)
-    {
-        WriteLog("🔐 Starting Roles backup...", "INFO");
-        progressCallback?.Invoke("Initializing Roles backup...");
-
-        var command = $@"
-            try {{
-                $rolesPath = Join-Path '{backupPath}' 'Roles'
-                New-Item -Path $rolesPath -ItemType Directory -Force | Out-Null
-                Write-Output ""Created Roles backup directory""
-                
-                if (Get-Module -Name VMware.PowerCLI -ListAvailable -ErrorAction SilentlyContinue) {{
-                    if ($global:SourceVIServer -and $global:SourceVIServer.IsConnected) {{
-                        Write-Output ""PROGRESS:Discovering vCenter roles...""
-                        $viRoles = Get-VIRole -Server $global:SourceVIServer -ErrorAction SilentlyContinue
-                        Write-Output ""Found $($viRoles.Count) roles""
-                        
-                        $roleIndex = 0
-                        foreach ($viRole in $viRoles) {{
-                            $roleIndex++
-                            Write-Output ""PROGRESS:Processing role $roleIndex of $($viRoles.Count): $($viRole.Name)""
-                            Write-Output ""Backing up role: $($viRole.Name)""
-                            
-                            $roleConfig = @{{
-                                Name = $viRole.Name
-                                Description = $viRole.Description
-                                PrivilegeList = $viRole.PrivilegeList
-                                IsSystem = $viRole.IsSystem
-                                Server = $viRole.Server.Name
-                            }}
-                            
-                            $safeFileName = $viRole.Name -replace '[\\/:*?""""<>|]', '_'
-                            $configFile = Join-Path $rolesPath ""$safeFileName.json""
-                            $roleConfig | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
-                            Write-Output ""Saved: $safeFileName.json""
-                        }}
-                        
-                        Write-Output ""Roles backup completed - $($viRoles.Count) roles backed up""
-                    }} else {{
-                        Write-Output ""PROGRESS:Creating simulated roles backup (no vCenter connection)""
-                        $simulatedRoles = @(
-                            @{{
-                                Name = 'Administrator'
-                                Description = 'Full administrative privileges'
-                                PrivilegeList = @('System.Anonymous', 'System.View', 'System.Read')
-                                IsSystem = $true
-                            }},
-                            @{{
-                                Name = 'ReadOnly'
-                                Description = 'Read-only access'
-                                PrivilegeList = @('System.Anonymous', 'System.View', 'System.Read')
-                                IsSystem = $true
-                            }}
+                $simulatedRoles = @(
+                    @{{
+                        Name = 'Administrator'
+                        Description = 'Full access rights'
+                        IsSystem = $true
+                        PrivilegeList = @(
+                            'System.Anonymous',
+                            'System.View',
+                            'System.Read'
                         )
-                        
-                        foreach ($simulatedRole in $simulatedRoles) {{
-                            $configFile = Join-Path $rolesPath ""$($simulatedRole.Name).json""
-                            $simulatedRole | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
-                            Write-Output ""Saved: $($simulatedRole.Name).json (simulated)""
-                        }}
-                        
-                        Write-Output ""Roles backup completed - $($simulatedRoles.Count) simulated roles backed up""
                     }}
-                }} else {{
-                    Write-Output ""PROGRESS:Creating simulated roles backup (PowerCLI not available)""
-                    $simulatedRoles = @(
-                        @{{
-                            Name = 'Administrator'
-                            Description = 'Full administrative privileges'
-                            PrivilegeList = @('System.Anonymous', 'System.View', 'System.Read')
-                            IsSystem = $true
-                        }},
-                        @{{
-                            Name = 'ReadOnly'
-                            Description = 'Read-only access'
-                            PrivilegeList = @('System.Anonymous', 'System.View', 'System.Read')
-                            IsSystem = $true
-                        }}
-                    )
-                    
-                    foreach ($simulatedRole in $simulatedRoles) {{
-                        $configFile = Join-Path $rolesPath ""$($simulatedRole.Name).json""
-                        $simulatedRole | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
-                        Write-Output ""Saved: $($simulatedRole.Name).json (simulated)""
+                )
+                
+                $simulatedPermissions = @(
+                    @{{
+                        Entity = 'vcenter7.domain.local'
+                        EntityType = 'VirtualCenter'
+                        Principal = 'administrator@vsphere.local'
+                        Role = 'Administrator'
+                        Propagate = $true
+                        IsGroup = $false
                     }}
-                    
-                    Write-Output ""Roles backup completed - $($simulatedRoles.Count) simulated roles backed up""
-                }}
-            }} catch {{
-                Write-Error ""Roles backup failed: $($_.Exception.Message)""
-                throw
+                )
+                
+                Write-Output ""PROGRESS:Saving simulated SSO users...""
+                $usersFile = Join-Path $usersPath ""SSOUsers.json""
+                $simulatedUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $usersFile -Encoding UTF8
+                
+                Write-Output ""PROGRESS:Saving simulated SSO groups...""
+                $groupsFile = Join-Path $usersPath ""SSOGroups.json""
+                $simulatedGroups | ConvertTo-Json -Depth 10 | Out-File -FilePath $groupsFile -Encoding UTF8
+                
+                Write-Output ""PROGRESS:Saving simulated vCenter roles...""
+                $rolesFile = Join-Path $usersPath ""VCenterRoles.json""
+                $simulatedRoles | ConvertTo-Json -Depth 10 | Out-File -FilePath $rolesFile -Encoding UTF8
+                
+                Write-Output ""PROGRESS:Saving simulated vCenter permissions...""
+                $permissionsFile = Join-Path $usersPath ""VCenterPermissions.json""
+                $simulatedPermissions | ConvertTo-Json -Depth 10 | Out-File -FilePath $permissionsFile -Encoding UTF8
+                
+                Write-Output ""Simulated users and groups backup completed (PowerCLI not available)""
             }}
-        ";
+        }} catch {{
+            Write-Error ""Users and Groups backup failed: $($_.Exception.Message)""
+            throw
+        }}
+    ";
 
-        try
+    try
+    {
+        var result = await ExecuteCommandAsync(command, cancellationToken);
+        var lines = result.Split('\n');
+        foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
         {
-            var result = await ExecuteCommandAsync(command, cancellationToken);
-            var lines = result.Split('\n');
-            foreach (var line in lines.Where(l => !string.IsNullOrWhiteSpace(l)))
-            {
-                var trimmedLine = line.Trim();
+            var trimmedLine = line.Trim();
 
-                if (trimmedLine.StartsWith("PROGRESS:"))
-                {
-                    var progressText = trimmedLine[9..];
-                    progressCallback?.Invoke(progressText);
-                }
-                else
-                {
-                    WriteLog($"🔐 {trimmedLine}", "INFO");
-                }
+            if (trimmedLine.StartsWith("PROGRESS:"))
+            {
+                var progressText = trimmedLine[9..];
+                progressCallback?.Invoke(progressText);
+            }
+            else
+            {
+                WriteLog($"👥 {trimmedLine}", "INFO");
             }
         }
-        catch (OperationCanceledException)
-        {
-            WriteLog("🛑 Roles backup was cancelled", "WARNING");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            WriteLog($"❌ Roles backup failed: {ex.Message}", "ERROR");
-            throw;
-        }
     }
+    catch (OperationCanceledException)
+    {
+        WriteLog("🛑 Users and Groups backup was cancelled", "WARNING");
+        throw;
+    }
+    catch (Exception ex)
+    {
+        WriteLog($"❌ Users and Groups backup failed: {ex.Message}", "ERROR");
+        throw;
+    }
+}
 
+                                ​
+
+                                ​
+  
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     public async Task BackupPermissionsAsync(string backupPath, CancellationToken cancellationToken = default, Action<string>? progressCallback = null)
     {
         WriteLog("🛡️ Starting Permissions backup...", "INFO");
@@ -1822,9 +2093,45 @@ VM:DevVM02 (PoweredOff)";
         return tasks;
     }
 
-    // Similar methods for VMs and Clusters
+    private async Task<List<MigrationTask>> PrepareVMMigrationAsync(List<string> vms)
+{
+    var tasks = new List<MigrationTask>();
 
+    foreach (var vm in vms)
+    {
+        tasks.Add(new MigrationTask
+        {
+            ObjectName = vm,
+            ObjectType = "VM",
+            Status = MigrationStatus.Queued,
+            Progress = 0,
+            StartTime = DateTime.Now,
+            Details = "Preparing for migration"
+        });
+    }
 
+    return tasks;
+}
+
+private async Task<List<MigrationTask>> PrepareClusterMigrationAsync(List<string> clusters)
+{
+    var tasks = new List<MigrationTask>();
+
+    foreach (var cluster in clusters)
+    {
+        tasks.Add(new MigrationTask
+        {
+            ObjectName = cluster,
+            ObjectType = "Cluster",
+            Status = MigrationStatus.Queued,
+            Progress = 0,
+            StartTime = DateTime.Now,
+            Details = "Preparing for migration"
+        });
+    }
+
+    return tasks;
+}
     public void Dispose()
     {
         DisconnectAll();
