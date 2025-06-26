@@ -9,62 +9,62 @@
         Height="850" Width="1250"
         WindowStartupLocation="CenterScreen"
         ui:WindowHelper.UseModernWindowStyle="True">
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="5"/>
-                <RowDefinition Height="250"/>
-            </Grid.RowDefinitions>
-            <Menu>
-                <MenuItem Header="File">
-                    <MenuItem Header="Exit" Click="Exit_Click"/>
-                </MenuItem>
-                <MenuItem Header="Help">
-                    <MenuItem Header="About" Click="About_Click"/>
-                </MenuItem>
-            </Menu>
-            <TabControl Grid.Row="1" Margin="10">
-                <TabItem Header="Backup">
-                    <Grid Margin="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="280"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0"
-                                    VerticalAlignment="Top"
-                            ui:StackPanelHelper.Spacing="10">
-                            <Button Content="👥  Backup Users &amp; Groups"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    Click="BackupUsersBtn_Click"/>
-                            <Button Content="🔐  Backup Roles"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    Click="BackupRolesBtn_Click"/>
-                            <Button Content="🛡️  Backup Permissions"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    Click="BackupPermsBtn_Click"/>
-                        </StackPanel>
-                        <GroupBox Header="Inventory" Grid.Column="1" Margin="10">
-                            <ScrollViewer>
-                                <TreeView x:Name="InventoryTreeView" />
-                            </ScrollViewer>
-                        </GroupBox>
-                    </Grid>
-                </TabItem>
-            </TabControl>
-            <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="{DynamicResource SystemAltHighColor}" ShowsPreview="True" ResizeBehavior="PreviousAndNext" />
-            <GroupBox Header="Activity Log" Grid.Row="3" Margin="10">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <StatusBar Grid.Row="0">
-                        <TextBlock x:Name="StatusBar" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
-                    </StatusBar>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                        <TextBox x:Name="LogBox" IsReadOnly="True" FontFamily="Consolas" FontSize="12" Background="#FF1E1E1E" Foreground="#FFDDDDDD" BorderThickness="0" AcceptsReturn="True" TextWrapping="Wrap"/>
-                    </ScrollViewer>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="250"/>
+        </Grid.RowDefinitions>
+        <Menu>
+            <MenuItem Header="File">
+                <MenuItem Header="Exit" Click="Exit_Click"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="About_Click"/>
+            </MenuItem>
+        </Menu>
+        <TabControl Grid.Row="1" Margin="10">
+            <TabItem Header="Backup">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Top">
+                        <Button Content="👥  Backup Users &amp; Groups"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="BackupUsersBtn_Click"
+                                Margin="0,0,0,10"/>
+                        <Button Content="🔐  Backup Roles"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="BackupRolesBtn_Click"
+                                Margin="0,0,0,10"/>
+                        <Button Content="🛡️  Backup Permissions"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Click="BackupPermsBtn_Click"/>
+                    </StackPanel>
+                    <GroupBox Header="Inventory" Grid.Column="1" Margin="10">
+                        <ScrollViewer>
+                            <TreeView x:Name="InventoryTreeView" />
+                        </ScrollViewer>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="{DynamicResource SystemAltHighColor}" ShowsPreview="True" ResizeBehavior="PreviousAndNext" />
+        <GroupBox Header="Activity Log" Grid.Row="3" Margin="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StatusBar Grid.Row="0">
+                    <TextBlock x:Name="StatusBar" Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                </StatusBar>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <TextBox x:Name="LogBox" IsReadOnly="True" FontFamily="Consolas" FontSize="12" Background="#FF1E1E1E" Foreground="#FFDDDDDD" BorderThickness="0" AcceptsReturn="True" TextWrapping="Wrap"/>
+                </ScrollViewer>
             </Grid>
         </GroupBox>
     </Grid>
