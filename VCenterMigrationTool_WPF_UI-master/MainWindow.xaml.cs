@@ -114,12 +114,7 @@ public partial class MainWindow : Window
     #region Logging Methods
     private void WriteLog(string message, string level = "INFO")
     {
-        var logEntry = new LogEntry
-        {
-            Timestamp = DateTime.Now,
-            Level = level,
-            Message = message
-        };
+        var logEntry = new LogEntry(DateTime.Now, level, message);
 
         // Add to collection first
         LogEntries.Add(logEntry);

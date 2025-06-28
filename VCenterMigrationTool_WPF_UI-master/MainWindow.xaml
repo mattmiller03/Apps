@@ -561,11 +561,15 @@
             <!-- Activity Log Tab -->
             <TabItem Header="📝 Activity Log" FontSize="14" DataContext="{Binding LogViewModel}">
                 <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="151*"/>
+                        <ColumnDefinition Width="1203*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5" Grid.ColumnSpan="2">
                         <Button Name="ClearLogButton" Content="🗑️ Clear Log"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Command="{Binding ClearLogCommand}"/>
@@ -587,7 +591,7 @@
                                    FontSize="10"
                                    FontStyle="Italic"/>
                     </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
                         <TextBox Name="LogTextBox" IsReadOnly="True"
                                  FontFamily="Consolas" FontSize="10"
                                  Background="#FF1E1E1E" Foreground="#FFCCCCCC"
