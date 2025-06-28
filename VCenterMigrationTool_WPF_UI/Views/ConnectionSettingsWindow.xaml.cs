@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using Ookii.Dialogs.Wpf;
+using VCenterMigrationTool_WPF_UI.Models;   // ← add this line
 
 namespace VCenterMigrationTool_WPF_UI;
 

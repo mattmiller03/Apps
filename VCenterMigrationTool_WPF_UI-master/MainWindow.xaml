@@ -199,9 +199,8 @@
         </Menu>
         <!-- Main Content Tabs -->
         <TabControl Grid.Row="1" Name="MainTabControl" Margin="10" Background="White">
-
             <!-- Connection Tab -->
-            <TabItem Header="🔌 Connection" FontSize="14">
+            <TabItem Header="🔌 Connection" FontSize="14" Name="ConnectionTab" DataContext="{Binding ConnectionViewModel}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="20">
                         <Grid.ColumnDefinitions>
@@ -209,55 +208,64 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <!-- Source vCenter -->
-                        <GroupBox Header="📍 Source vCenter 7.x" Grid.Column="0" Margin="10" 
-                                  Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
+                        <Border Grid.Column="0" Margin="10"
+                    Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" CornerRadius="5">
                             <StackPanel Margin="20">
+                                <TextBlock Text="📍 Source vCenter 7.x" Style="{StaticResource HeaderTextStyle}" Margin="0,0,0,10"/>
                                 <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
                                 <TextBox Name="SourceVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter7.domain.local"/>
-
+                             Text="{Binding SourceVCenter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    
                                 <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
                                 <TextBox Name="SourceUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                             Text="{Binding SourceUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 
                                 <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"
+                                 Password="{Binding SourcePassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 
-                                <Button Name="ConnectSourceButton" Content="🔗 Connect to Source" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectSource_Click" Margin="5,20,5,5" Height="40"/>
+                                <Button Name="ConnectSourceButton" Content="🔗 Connect"
+                            Style="{StaticResource ConnectButtonStyle}"
+                            Command="{Binding ConnectSourceCommand}"
+                            IsEnabled="{Binding IsSourceConnected, Converter={StaticResource BooleanToInverseConverter}}"
+                            Margin="5,20,5,5" Height="40"/>
                             </StackPanel>
-                        </GroupBox>
+                        </Border>
 
                         <!-- Destination vCenter -->
-                        <GroupBox Header="🎯 Destination vCenter 8.x" Grid.Column="1" Margin="10"
-                                  Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
+                        <Border Grid.Column="1" Margin="10"
+                    Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" CornerRadius="5">
                             <StackPanel Margin="20">
+                                <TextBlock Text="🎯 Destination vCenter 8.x" Style="{StaticResource HeaderTextStyle}" Margin="0,0,0,10"/>
                                 <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
                                 <TextBox Name="DestVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter8.domain.local"/>
+                             Text="{Binding DestVCenter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 
                                 <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
                                 <TextBox Name="DestUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                             Text="{Binding DestUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 
                                 <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"
+                                 Password="{Binding DestPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 
-                                <Button Name="ConnectDestButton" Content="🔗 Connect to Destination" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectDest_Click" Margin="5,20,5,5" Height="40"/>
+                                <Button Name="ConnectDestButton" Content="🔗 Connect"
+                            Style="{StaticResource ConnectButtonStyle}"
+                            Command="{Binding ConnectDestCommand}"
+                            IsEnabled="{Binding IsDestConnected, Converter={StaticResource BooleanToInverseConverter}}"
+                            Margin="5,20,5,5" Height="40"/>
                             </StackPanel>
-                        </GroupBox>
+                        </Border>
 
                         <!-- Connection Status -->
-                        <GroupBox Header="📊 Connection Status" Grid.Row="1" Grid.ColumnSpan="2" Margin="10"
-                                  Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
+                        <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="10"
+                    Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" CornerRadius="5">
                             <Grid Margin="20">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -265,30 +273,38 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <StackPanel Grid.Column="0">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Replace TextBlock with a visual indicator -->
+                                    <Ellipse Width="12" Height="12" Margin="0,0,5,0"
+                                 Fill="{Binding SourceStatusColor}"/>
                                     <TextBlock Text="Source Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="SourceStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="SourceVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
+                                    <TextBlock Name="SourceStatusText" Text="{Binding SourceStatus}"
+                                   Style="{StaticResource StatusTextStyle}"/>
+                                    <TextBlock Name="SourceVersionText" Text="{Binding SourceVersion}"
+                                   Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="1">
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <!-- Replace TextBlock with a visual indicator -->
+                                    <Ellipse Width="12" Height="12" Margin="0,0,5,0"
+                                 Fill="{Binding DestStatusColor}"/>
                                     <TextBlock Text="Destination Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="DestStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="DestVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
+                                    <TextBlock Name="DestStatusText" Text="{Binding DestStatus}"
+                                   Style="{StaticResource StatusTextStyle}"/>
+                                    <TextBlock Name="DestVersionText" Text="{Binding DestVersion}"
+                                   Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Orientation="Vertical">
-                                    <Button Name="TestConnectionButton" Content="🔍 Test Connections" 
-                                            Style="{StaticResource ModernButtonStyle}" Click="TestConnection_Click"/>
-                                    <Button Name="DisconnectButton" Content="🔌 Disconnect All" 
-                                            Style="{StaticResource DangerButtonStyle}" Click="DisconnectAll_Click"/>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Name="TestConnectionButton" Content="🔍 Test"
+                                Style="{StaticResource ModernButtonStyle}"
+                                Command="{Binding TestConnectionCommand}" Margin="0,0,5,0"/>
+                                    <Button Name="DisconnectButton" Content="🔌 Disconnect"
+                                Style="{StaticResource DangerButtonStyle}"
+                                Command="{Binding DisconnectAllCommand}"/>
                                 </StackPanel>
                             </Grid>
-                        </GroupBox>
+                        </Border>
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -414,7 +430,7 @@
                                            Foreground="#666666"
                                            TextWrapping="Wrap"/>
                             </StackPanel>
-                            
+
                             <StackPanel Grid.Row="3" Margin="0,10,0,0">
                                 <TextBlock Text="Overall Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
                                 <ProgressBar Name="BackupProgressBar" Height="25" Margin="0,5" 
@@ -634,81 +650,49 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
+            <!-- activity Tab -->
+            <TabItem Header="📝 Activity Log" FontSize="14" DataContext="{Binding LogViewModel}">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                        <Button Name="ClearLogButton" Content="🗑️ Clear Log"
+                    Style="{StaticResource ModernButtonStyle}"
+                    Command="{Binding ClearLogCommand}"/>
+                        <Button Name="SaveLogButton" Content="💾 Save Log"
+                    Style="{StaticResource ModernButtonStyle}"
+                    Command="{Binding SaveLogCommand}"/>
+                        <ComboBox Name="LogLevelComboBox" Width="100" Margin="10,0,0,0" SelectedIndex="0" FontSize="11"
+                      ItemsSource="{Binding LogLevels}"
+                      SelectedItem="{Binding SelectedLogLevel, Mode=TwoWay}">
+                            <ComboBoxItem Content="All"/>
+                            <ComboBoxItem Content="INFO"/>
+                            <ComboBoxItem Content="WARNING"/>
+                            <ComboBoxItem Content="ERROR"/>
+                        </ComboBox>
+
+                        <!-- Add resize indicator -->
+                        <TextBlock Text="↕️ Drag the splitter above to resize"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0"
+                       Foreground="#FF999999"
+                       FontSize="10"
+                       FontStyle="Italic"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <TextBox Name="LogTextBox" IsReadOnly="True"
+                     FontFamily="Consolas" FontSize="10"
+                     Background="#FF1E1E1E" Foreground="#FFCCCCCC"
+                     AcceptsReturn="True" TextWrapping="Wrap"
+                     BorderThickness="0"
+                     Text="{Binding LogText, Mode=OneWay}"/>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
         </TabControl>
-        <!-- GridSplitter for resizing -->
-        <GridSplitter Grid.Row="2" 
-                  Height="5" 
-                  HorizontalAlignment="Stretch" 
-                  VerticalAlignment="Stretch"
-                  Background="#FFCCCCCC"
-                  ShowsPreview="True"
-                  ResizeBehavior="PreviousAndNext"
-                  ResizeDirection="Rows">
-            <GridSplitter.Style>
-                <Style TargetType="GridSplitter">
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="GridSplitter">
-                                <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="#FF999999"
-                                    BorderThickness="0,1,0,1">
-                                    <Rectangle Fill="#FFEEEEEE" 
-                                          Height="3" 
-                                          HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center"
-                                          RadiusX="1" 
-                                          RadiusY="1"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#FF007ACC"/>
-                                        <Setter Property="Cursor" Value="SizeNS"/>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </GridSplitter.Style>
-        </GridSplitter>
-        <!-- Log Output (now resizable) -->
-        <GroupBox Header="📝 Activity Log" Grid.Row="3" Margin="10" Background="White" 
-              BorderBrush="#FFDDDDDD" BorderThickness="1">
-            <Grid Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Name="ClearLogButton" Content="🗑️ Clear Log" 
-                       Style="{StaticResource ModernButtonStyle}" Click="ClearLog_Click"/>
-                    <Button Name="SaveLogButton" Content="💾 Save Log" 
-                       Style="{StaticResource ModernButtonStyle}" Click="SaveLog_Click"/>
-                    <ComboBox Name="LogLevelComboBox" Width="100" Margin="10,0,0,0" SelectedIndex="0" FontSize="11">
-                        <ComboBoxItem Content="All"/>
-                        <ComboBoxItem Content="INFO"/>
-                        <ComboBoxItem Content="WARNING"/>
-                        <ComboBoxItem Content="ERROR"/>
-                    </ComboBox>
-
-                    <!-- Add resize indicator -->
-                    <TextBlock Text="↕️ Drag the splitter above to resize" 
-                          VerticalAlignment="Center" 
-                          Margin="20,0,0,0" 
-                          Foreground="#FF999999" 
-                          FontSize="10" 
-                          FontStyle="Italic"/>
-                </StackPanel>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <TextBox Name="LogTextBox" IsReadOnly="True" 
-                         FontFamily="Consolas" FontSize="10" 
-                         Background="#FF1E1E1E" Foreground="#FFCCCCCC"
-                         AcceptsReturn="True" TextWrapping="Wrap"
-                         BorderThickness="0"/>
-                </ScrollViewer>
-            </Grid>
-        </GroupBox>
     </Grid>
 </Window>

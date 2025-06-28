@@ -1,13 +1,14 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.Win32;
+using Ookii.Dialogs.Wpf;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Win32;
-using Ookii.Dialogs.Wpf;
-using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Utilities;
+using VCenterMigrationTool_WPF_UI.ViewModels;
 
 namespace VCenterMigrationTool_WPF_UI;
 
@@ -30,6 +31,9 @@ public partial class MainWindow : Window
     // NEW: Cancellation support for backup operations
     private CancellationTokenSource? _backupCancellationTokenSource;
     private bool _isBackupRunning = false;
+
+
+    public LogViewModel LogViewModel { get; } = new LogViewModel();
 
     public MainWindow()
     {
@@ -537,7 +541,15 @@ public partial class MainWindow : Window
     #region Connection Settings Menu Handlers
     private void ConnectionSettings_Click(object sender, RoutedEventArgs e)
     {
-        var settingsWindow = new ConnectionSettingsWindow
+        //Resolve dependencies
+        var connectionManager = new ConnectionManager();
+        var dialogService = new DialogService();
+
+        //Create the viewmodel, injecting dependencies
+        var settingsViewModel = new ConnectionSettingsViewModel(connectionManager, dialogService);
+
+        //Create the Window, injecting the viewmodel
+        var settingsWindow = new ConnectionSettingsWindow(settingsViewModel)
         {
             Owner = this
         };

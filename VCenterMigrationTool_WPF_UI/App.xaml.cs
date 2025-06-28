@@ -15,7 +15,7 @@ namespace VCenterMigrationTool_WPF_UI
         {
             var sc = new ServiceCollection();
             sc.AddSingleton<Logger>();
-            sc.AddSingleton<PowerShellManager>();
+            sc.AddSingleton< PowerShellRunspaceManager> ();
             sc.AddSingleton<MainViewModel>();
             Services = sc.BuildServiceProvider();
 

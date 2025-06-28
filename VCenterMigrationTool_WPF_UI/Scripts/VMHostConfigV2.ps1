@@ -1,14 +1,144 @@
-﻿@{
-    RootModule        = 'VMHostConfig.psm1'
-    ModuleVersion     = '2.0.0'
-    GUID              = '27e3122c-9398-4eb6-ba70-0bd1c9cfa9ad'
-    Author            = 'YOU'
-    CompanyName       = 'YOUR COMPANY'
-    PowerShellVersion = '5.1'
-}
+﻿<#
+.SYNOPSIS
+    Manage VMware ESXi host configurations when migrating between vCenter servers. Version 2 - Modularized, Parameter Sets, WhatIf, and Help.
 
+.DESCRIPTION
+    This script allows you to backup, restore, and migrate VMware ESXi host configurations. It provides a modular design, uses parameter sets for clear parameter requirements, supports WhatIf for testing, and includes comprehensive error handling and logging. The script is designed to simplify the process of managing ESXi host configurations, especially when migrating hosts between vCenter servers.
 
+.PARAMETER Action
+    Specifies the action to perform. Valid values are "Backup", "Restore", and "Migrate".
 
+.PARAMETER vCenter
+    Specifies the name or IP address of the vCenter server. This parameter is mandatory for Backup and Restore actions.
+
+.PARAMETER VMHostName
+    Specifies the name of the ESXi host. This parameter is mandatory for Backup and Restore actions.
+
+.PARAMETER BackupPath
+    Specifies the path to the directory where backup files will be stored. If not specified, the current directory will be used.
+
+.PARAMETER BackupFile
+    Specifies the path to the backup file to use for the Restore action. This parameter is mandatory for the Restore action.
+
+.PARAMETER Credential
+    Specifies the credentials to use to connect to the vCenter server. This parameter is mandatory for Backup and Restore actions.
+
+.PARAMETER LogPath
+    Specifies the path to the directory where log files will be stored. If not specified, the current directory will be used.
+
+.PARAMETER TargetVCenter
+    Specifies the name or IP address of the target vCenter server. This parameter is mandatory for the Migrate action.
+
+.PARAMETER SourceVCenter
+    Specifies the name or IP address of the source vCenter server. This parameter is mandatory for the Migrate action.
+
+.PARAMETER SourceCredential
+    Specifies the credentials to use to connect to the source vCenter server. This parameter is optional for the Migrate action.
+
+.PARAMETER TargetCredential
+    Specifies the credentials to use to connect to the target vCenter server. This parameter is optional for the Migrate action.
+
+.PARAMETER ESXiHostCredential
+    Specifies the credentials to use to connect directly to the ESXi host. This parameter is mandatory for the Migrate action.
+
+.PARAMETER TargetDatacenterName
+    Specifies the name of the datacenter in the target vCenter server where the host will be added. If not specified, the first datacenter found will be used.
+
+.PARAMETER TargetClusterName
+    Specifies the name of the cluster in the target vCenter server where the host will be added. If not specified, the host will be added to the datacenter directly.
+
+.PARAMETER OperationTimeout
+    Specifies the timeout, in seconds, for long-running operations. The default value is 600 seconds.
+
+.PARAMETER UplinkPortgroupName
+    Specifies the name of the uplink portgroup on the distributed switch. This parameter is optional and can be used to explicitly specify the uplink portgroup if automatic discovery fails.
+
+.EXAMPLE
+    .\VMHostConfigV2.ps1 -Action Backup -vCenter "your_vcenter.example.com" -VMHostName "esxi_host.example.com" -Credential (Get-Credential) -BackupPath "C:\Backups"
+
+    This example backs up the configuration of the ESXi host "esxi_host.example.com" to the directory "C:\Backups", using the specified credentials to connect to the vCenter server "your_vcenter.example.com".
+
+.EXAMPLE
+    .\VMHostConfigV2.ps1 -Action Restore -vCenter "your_vcenter.example.com" -VMHostName "esxi_host.example.com" -Credential (Get-Credential) -BackupFile "C:\Backups\VMHost_esxi_host_20231027_100000.json"
+
+    This example restores the configuration of the ESXi host "esxi_host.example.com" from the backup file "C:\Backups\VMHost_esxi_host_20231027_100000.json", using the specified credentials to connect to the vCenter server "your_vcenter.example.com".
+
+.EXAMPLE
+    .\VMHostConfigV2.ps1 -Action Migrate -SourceVCenter "source_vcenter.example.com" -TargetVCenter "target_vcenter.example.com" -VMHostName "esxi_host.example.com" -ESXiHostCredential (Get-Credential) -SourceCredential (Get-Credential) -TargetCredential (Get-Credential) -TargetDatacenterName "TargetDatacenter" -TargetClusterName "TargetCluster" -BackupPath "C:\Backups" -UplinkPortgroupName "Uplink1"
+
+    This example migrates the ESXi host "esxi_host.example.com" from the source vCenter server "source_vcenter.example.com" to the target vCenter server "target_vcenter.example.com", using the specified credentials. The host will be added to the "TargetDatacenter" datacenter and the "TargetCluster" cluster in the target vCenter server. The UplinkPortgroupName is explicitly set to Uplink1
+
+.NOTES
+    This script requires the VMware PowerCLI module to be installed. It also requires the user to have the necessary permissions to perform the specified actions on the ESXi host and vCenter server.
+    The script has been tested with PowerCLI version 13.x and ESXi version 7.x/8.x.
+    The script may not work correctly in all environments. It is recommended to test the script in a lab environment before using it in production.
+    The script relies on certain naming conventions for distributed switch uplink portgroups. If the automatic discovery of the uplink portgroup fails, you may need to specify the UplinkPortgroupName parameter explicitly.
+    The -WhatIf parameter provides an overview of the actions that would be performed but does not guarantee that all actions will succeed when run without -WhatIf.
+#>
+
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true, ParameterSetName = "Backup")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Restore")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Migrate")]
+    [ValidateSet("Backup", "Restore", "Migrate")]
+    [string]$Action,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Backup")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Restore")]
+    [ValidateNotNullOrEmpty()]
+    [string]$vCenter,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Backup")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Restore")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Migrate")]
+    [ValidateNotNullOrEmpty()]
+    [string]$VMHostName,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Backup")]
+    [string]$BackupPath = (Get-Location).Path,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Restore")]
+    [string]$BackupFile,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Backup")]
+    [Parameter(Mandatory = $true, ParameterSetName = "Restore")]
+    [System.Management.Automation.PSCredential]$Credential,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Backup")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Restore")]
+    [Parameter(Mandatory = $false, ParameterSetName = "Migrate")]
+    [string]$LogPath = (Get-Location).Path,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Migrate")]
+    [ValidateNotNullOrEmpty()]
+    [string]$SourceVCenter,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Migrate")]
+    [ValidateNotNullOrEmpty()]
+    [string]$TargetVCenter,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Migrate")]
+    [System.Management.Automation.PSCredential]$SourceCredential,
+
+    [Parameter(Mandatory = $false, ParameterSetName = "Migrate")]
+    [System.Management.Automation.PSCredential]$TargetCredential,
+
+    [Parameter(Mandatory = $true, ParameterSetName = "Migrate")]
+    [System.Management.Automation.PSCredential]$ESXiHostCredential,
+
+    [Parameter(Mandatory = $false)]
+    [string]$TargetDatacenterName,
+
+    [Parameter(Mandatory = $false)]
+    [string]$TargetClusterName,
+
+    [Parameter(Mandatory = $false)]
+    [int]$OperationTimeout = 600,
+
+    [Parameter(Mandatory = $false)]
+    [string]$UplinkPortgroupName
+)
 
 #region Enhanced logging initialization
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -2618,11 +2748,3 @@ finally {
     Write-Log "Script execution completed" -Level INFO
 }
 #endregion
-
-
-Export-ModuleMember -Function `
-    Backup-VMHostConfiguration, Restore-VMHostConfiguration, `
-    Migrate-VMHostBetweenVCenters, `
-    Backup-UsersAndGroups, Restore-UsersAndGroups, `
-    Backup-Roles,            Restore-Roles, `
-    Backup-Permissions,      Restore-Permissions

@@ -16,6 +16,7 @@ public class PowerShellManager : IDisposable
     public bool IsDestinationConnected { get; private set; }
     public bool IsPowerCLIAvailable { get; private set; }
 
+
     // Event for logging
     public event Action<string, string>? LogMessage;
 

@@ -6,14 +6,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="vCenter Migration Tool v1.0" 
-        Height="1059" Width="1400"
+        Height="912" Width="1222"
         WindowStartupLocation="CenterScreen"
         WindowState="Normal"
         ui:WindowHelper.UseModernWindowStyle="True">
 
     <Window.Resources>
-        <!-- Modern Button Styles with ModernWPF Integration -->
-        <Style x:Key="ModernButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <!-- Modern Button Styles with Fallback Colors -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#FF007ACC"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -23,6 +23,31 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Height" Value="35"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="3" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF004578"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FFCCCCCC"/>
+                                <Setter Property="Foreground" Value="#FF666666"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Specialized Button Styles -->
@@ -62,12 +87,12 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Text Styles -->
+        <!-- Text Styles with Fallback Colors -->
         <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Margin" Value="5,10,5,5"/>
-            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+            <Setter Property="Foreground" Value="#FF2C3E50"/>
         </Style>
 
         <Style x:Key="StatusTextStyle" TargetType="TextBlock">
@@ -76,34 +101,52 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <!-- Input Styles with ModernWPF -->
-        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+        <!-- Input Styles -->
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderBrush" Value="#FFDDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#FF007ACC"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
-        <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource DefaultPasswordBoxStyle}">
+        <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox">
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderBrush" Value="#FFDDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#FF007ACC"/>
+                    <Setter Property="BorderThickness" Value="2"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <!-- Menu Styles -->
         <Style x:Key="ModernMenuStyle" TargetType="Menu">
-            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+            <Setter Property="Background" Value="#FF2C3E50"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="Height" Value="32"/>
         </Style>
 
         <Style x:Key="ModernMenuItemStyle" TargetType="MenuItem">
-            <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Padding" Value="8,6"/>
         </Style>
     </Window.Resources>
 
-    <Grid Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+    <Grid Background="#FFF8F9FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -114,247 +157,401 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0" Style="{StaticResource ModernMenuStyle}">
             <MenuItem Header="File" Style="{StaticResource ModernMenuItemStyle}">
-                <MenuItem Header="🔌 Connect to vCenter" Click="ConnectVCenter_Click"/>
-                <MenuItem Header="🔌 Disconnect All" Click="DisconnectAll_Click"/>
+                <MenuItem Header="📁 Load Connection Profile" Click="LoadProfile_Click"/>
+                <MenuItem Header="💾 Save Connection Profile" Click="SaveProfile_Click"/>
                 <Separator/>
+                <MenuItem Header="📄 Export Configuration" Click="ExportConfig_Click"/>
                 <MenuItem Header="📥 Import Configuration" Click="ImportConfig_Click"/>
-                <MenuItem Header="📤 Export Configuration" Click="ExportConfig_Click"/>
                 <Separator/>
-                <MenuItem Header="❌ Exit" Click="Exit_Click"/>
+                <MenuItem Header="🚪 Exit" Click="Exit_Click"/>
             </MenuItem>
 
             <MenuItem Header="Tools" Style="{StaticResource ModernMenuItemStyle}">
-                <MenuItem Header="⚙️ PowerCLI Configuration" Click="PowerCLIConfig_Click"/>
-                <MenuItem Header="🔍 Test Connectivity" Click="TestConnectivity_Click"/>
-                <MenuItem Header="✅ Validate Prerequisites" Click="ValidatePrerequisites_Click"/>
+                <MenuItem Header="📂 Configure Backup Path" Click="ConfigureBackupPath_Click"/>
+                <MenuItem Header="🔑 Manage Migration Credentials" Click="ManageCredentials_Click"/>
                 <Separator/>
-                <MenuItem Header="💾 Connection Settings" Click="ConnectionSettings_Click"/>
-                <MenuItem Header="📂 Load Connection Profile" Click="LoadConnectionProfile_Click"/>
-                <MenuItem Header="💾 Save Current Settings" Click="SaveCurrentSettings_Click"/>
+                <MenuItem Header="🔧 PowerCLI Settings" Click="PowerCLISettings_Click"/>
+                <MenuItem Header="📊 View Logs" Click="ViewLogs_Click"/>
+                <MenuItem Header="🧹 Clear Cache" Click="ClearCache_Click"/>
+                <Separator/>
+                <MenuItem Header="⚙️ Application Settings" Click="AppSettings_Click"/>
             </MenuItem>
 
             <MenuItem Header="Help" Style="{StaticResource ModernMenuItemStyle}">
-                <MenuItem Header="📖 Documentation" Click="Documentation_Click"/>
+                <MenuItem Header="📖 User Guide" Click="UserGuide_Click"/>
+                <MenuItem Header="🆘 Support" Click="Support_Click"/>
                 <MenuItem Header="ℹ️ About" Click="About_Click"/>
             </MenuItem>
         </Menu>
 
+
         <!-- Main Content Tabs -->
-        <TabControl Grid.Row="1" Name="MainTabControl" Margin="10">
+        <TabControl Grid.Row="1" Name="MainTabControl" Margin="10,10,10,10" Background="White" Grid.RowSpan="3">
 
             <!-- Connection Tab -->
             <TabItem Header="🔌 Connection" FontSize="14">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="20">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <TextBlock Grid.Row="0" Text="🔌 vCenter Server Connections" 
+                   Style="{StaticResource HeaderTextStyle}" FontSize="20" 
+                   Margin="0,0,0,20"/>
+
+                    <!-- Connection Forms -->
+                    <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
 
                         <!-- Source vCenter -->
-                        <GroupBox Header="📍 Source vCenter 7.x" Grid.Column="0" Margin="10">
-                            <StackPanel Margin="20">
-                                <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter7.domain.local"/>
+                        <GroupBox Grid.Column="0" Header="📤 Source vCenter (7.x)" 
+                      Background="White" BorderBrush="#FFDDDDDD" BorderThickness="2">
+                            <StackPanel Margin="15">
+                                <TextBlock Text="Server Address:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Name="SourceVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}" 
+                             Margin="0,0,0,15" ToolTip="Enter the FQDN or IP address of the source vCenter server"/>
 
-                                <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                                <TextBlock Text="Username:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Name="SourceUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}" 
+                             Margin="0,0,0,15" ToolTip="Enter username (e.g., administrator@vsphere.local)"/>
 
-                                <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                <TextBlock Text="Password:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}" 
+                                 Margin="0,0,0,20"/>
 
-                                <Button Name="ConnectSourceButton" Content="🔗 Connect to Source" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectSource_Click" Margin="5,20,5,5" Height="40"/>
+                                <Button Name="ConnectSourceButton" Content="🔌 Connect" 
+                            Style="{StaticResource ConnectButtonStyle}" Click="ConnectSource_Click" 
+                            Margin="0,0,0,15"/>
+
+                                <StackPanel>
+                                    <TextBlock Name="SourceStatusText" Text="❌ Not Connected" 
+                                   FontWeight="SemiBold" Foreground="Red" Margin="0,0,0,5"/>
+                                    <TextBlock Name="SourceVersionText" Text="Version: Unknown" 
+                                   FontStyle="Italic" Foreground="Gray"/>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
 
                         <!-- Destination vCenter -->
-                        <GroupBox Header="🎯 Destination vCenter 8.x" Grid.Column="1" Margin="10">
-                            <StackPanel Margin="20">
-                                <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter8.domain.local"/>
+                        <GroupBox Grid.Column="2" Header="📥 Destination vCenter (8.x)" 
+                      Background="White" BorderBrush="#FFDDDDDD" BorderThickness="2">
+                            <StackPanel Margin="15">
+                                <TextBlock Text="Server Address:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Name="DestVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}" 
+                             Margin="0,0,0,15" ToolTip="Enter the FQDN or IP address of the destination vCenter server"/>
 
-                                <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                                <TextBlock Text="Username:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <TextBox Name="DestUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}" 
+                             Margin="0,0,0,15" ToolTip="Enter username (e.g., administrator@vsphere.local)"/>
 
-                                <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                                <TextBlock Text="Password:" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}" 
+                                 Margin="0,0,0,20"/>
 
-                                <Button Name="ConnectDestButton" Content="🔗 Connect to Destination" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectDest_Click" Margin="5,20,5,5" Height="40"/>
+                                <Button Name="ConnectDestButton" Content="🔌 Connect" 
+                            Style="{StaticResource ConnectButtonStyle}" Click="ConnectDest_Click" 
+                            Margin="0,0,0,15"/>
+
+                                <StackPanel>
+                                    <TextBlock Name="DestStatusText" Text="❌ Not Connected" 
+                                   FontWeight="SemiBold" Foreground="Red" Margin="0,0,0,5"/>
+                                    <TextBlock Name="DestVersionText" Text="Version: Unknown" 
+                                   FontStyle="Italic" Foreground="Gray"/>
+                                </StackPanel>
                             </StackPanel>
                         </GroupBox>
-
-                        <!-- Connection Status -->
-                        <GroupBox Header="📊 Connection Status" Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
-                            <Grid Margin="20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Source Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="SourceStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="SourceVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Destination Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="DestStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="DestVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Vertical">
-                                    <Button Name="TestConnectionButton" Content="🔍 Test Connections" 
-                                            Style="{StaticResource ModernButtonStyle}" Click="TestConnection_Click"/>
-                                    <Button Name="DisconnectButton" Content="🔌 Disconnect All" 
-                                            Style="{StaticResource DangerButtonStyle}" Click="DisconnectAll_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
                     </Grid>
-                </ScrollViewer>
+
+                    <!-- Control Buttons -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" 
+                    Margin="0,30,0,0">
+                        <Button Name="TestConnectionButton" Content="🔍 Test Connection" 
+                    Style="{StaticResource ModernButtonStyle}" Click="TestConnection_Click" 
+                    Width="150" Height="35" Margin="0,0,15,0"/>
+                        <Button Name="DisconnectAllButton" Content="🔌 Disconnect All" 
+                    Style="{StaticResource DangerButtonStyle}" Click="DisconnectAll_Click" 
+                    Width="150" Height="35" Margin="0,0,15,0"/>
+                        <Button Name="SaveConnectionProfileButton" Content="💾 Save Profile" 
+                    Style="{StaticResource ModernButtonStyle}" Click="SaveCurrentSettings_Click" 
+                    Width="150" Height="35"/>
+                    </StackPanel>
+                </Grid>
             </TabItem>
 
             <!-- Backup Tab -->
             <TabItem Header="💾 Backup Tasks" FontSize="14">
                 <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="350"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="120"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- Backup Task Selection -->
-                    <GroupBox Header="📋 Select Backup Tasks" Grid.Column="0" Margin="5">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Height="713">
-                            <StackPanel Margin="15" Height="730">
-                                <TextBlock Text="vCenter Level Backups:" FontWeight="Bold" Margin="0,0,0,10" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                    <!-- Header Section with Controls -->
+                    <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                        <TextBlock Text="📋 Backup Configuration" Style="{StaticResource HeaderTextStyle}" FontSize="18" Margin="0,0,0,10"/>
 
-                                <CheckBox Name="BackupVDSCheckBox" Content="🔗 Virtual Distributed Switches" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupUsersCheckBox" Content="👥 Users and Groups" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupRolesCheckBox" Content="🔐 Administration Roles" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupPermissionsCheckBox" Content="🛡️ Global Permissions" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupCertificatesCheckBox" Content="📜 Certificates" 
-                                         Margin="5" IsChecked="False" FontSize="12"/>
-                                <CheckBox Name="BackupIdentityCheckBox" Content="🆔 Identity Sources" 
-                                         Margin="5" IsChecked="False" FontSize="12"/>
-
-                                <Separator Margin="10"/>
-                                <TextBlock Text="Infrastructure Backups:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
-
-                                <CheckBox Name="BackupHostConfigCheckBox" Content="🖥️ Host Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupVMConfigCheckBox" Content="💻 VM Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupClusterConfigCheckBox" Content="🏢 Cluster Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupResourcePoolCheckBox" Content="🏊 Resource Pools" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupFoldersCheckBox" Content="📁 VM Folders" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-
-                                <Separator Margin="15"/>
-
-                                <StackPanel>
-                                    <Button Name="SelectAllBackupButton" Content="✅ Select All" 
-                                           Style="{StaticResource ModernButtonStyle}" Click="SelectAllBackup_Click"/>
-                                    <Button Name="ClearAllBackupButton" Content="❌ Clear All" 
-                                           Style="{StaticResource ModernButtonStyle}" Click="ClearAllBackup_Click"/>
-                                </StackPanel>
-
-                                <Separator Margin="15"/>
-
-                                <TextBlock Text="Backup Location:" FontWeight="Bold" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
-                                <TextBox Name="BackupPathTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                        Text="C:\VCenterMigration\Backup"/>
-                                <Button Name="BrowseBackupButton" Content="📂 Browse" 
-                                       Style="{StaticResource ModernButtonStyle}" Click="BrowseBackup_Click"/>
-
-                                <Separator Margin="15"/>
-                                <Button x:Name="ExecuteBackupButton" Content="🚀 Execute Backup" 
-                                       Style="{StaticResource BackupButtonStyle}" 
-                                       FontSize="14" Height="45" Click="ExecuteBackup_Click"/>
-                                <Button x:Name="CancelBackupButton" Content="🛑 Cancel Backup" 
-                                       Style="{StaticResource DangerButtonStyle}" 
-                                       Click="CancelBackup_Click" IsEnabled="False" Visibility="Collapsed"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </GroupBox>
-
-                    <!-- Backup Progress -->
-                    <GroupBox Header="🎯 Backup Progress" Grid.Column="1" Margin="5">
-                        <Grid Margin="15">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                        <!-- Scope, Backup Path, and Controls Row -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
                             <!-- Scope Selection -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                                <TextBlock Text="Backup Scope:" FontWeight="Bold" VerticalAlignment="Center" 
-                                          Margin="0,0,10,0" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
-                                <ComboBox Name="ScopeComboBox" Width="200" SelectedIndex="0" FontSize="12"
-                                         SelectionChanged="ScopeComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="🌐 vCenter Level"/>
-                                    <ComboBoxItem Content="🏢 Cluster Level"/>
-                                    <ComboBoxItem Content="🖥️ Host Level"/>
-                                    <ComboBoxItem Content="💻 VM Level"/>
-                                </ComboBox>
+                            <TextBlock Grid.Column="0" Text="🎯 Scope:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                            <ComboBox Grid.Column="1" Name="ScopeComboBox" SelectedIndex="0" 
+                          SelectionChanged="ScopeComboBox_SelectionChanged" VerticalAlignment="Center">
+                                <ComboBoxItem Content="vCenter Level"/>
+                                <ComboBoxItem Content="Datacenter Level"/>
+                                <ComboBoxItem Content="Cluster Level"/>
+                                <ComboBoxItem Content="Host Level"/>
+                            </ComboBox>
+
+                            <!-- Separator -->
+                            <Separator Grid.Column="2" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" 
+                           Margin="10,0,10,0"/>
+
+                            <!-- Backup Path Display -->
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="📂 Backup Path:" FontWeight="SemiBold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Name="BackupPathDisplayText" Text="C:\VCenterBackup" 
+                               FontStyle="Italic" Foreground="#FF666666" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock Text="(Configure in Tools menu)" FontSize="10" Foreground="Gray" VerticalAlignment="Center"/>
                             </StackPanel>
 
-                            <!-- Inventory Tree -->
-                            <GroupBox Header="📊 vCenter Inventory" Grid.Row="1">
-                                <ScrollViewer>
-                                    <TreeView Name="InventoryTreeView" Margin="5" FontSize="11"/>
-                                </ScrollViewer>
-                            </GroupBox>
+                            <!-- Flexible Space -->
+                            <Grid Grid.Column="4"/>
 
-                            <!-- Current Task -->
-                            <StackPanel Grid.Row="2" Margin="0,15">
-                                <TextBlock Name="CurrentBackupTaskText" 
-                                    Text="Ready to start backup process..." 
-                                    FontWeight="Bold" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
-                                <TextBlock x:Name="BackupDetailText" 
-                                           Text="Select backup tasks and click Execute Backup to begin."
-                                           Margin="0,5,0,0"
-                                           FontSize="11"
-                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
+                            <!-- Separator -->
+                            <Separator Grid.Column="5" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" 
+                           Margin="10,0,10,0"/>
 
-                            <StackPanel Grid.Row="3" Margin="0,10,0,0">
-                                <TextBlock Text="Overall Progress:" FontWeight="Bold" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
-                                <ProgressBar Name="BackupProgressBar" Height="25" Margin="0,5"/>
-                                <TextBlock Name="BackupProgressText" Text="0% Complete" 
-                                          HorizontalAlignment="Center" Margin="0,5" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11"/>
+                            <!-- Control Buttons (Horizontal) -->
+                            <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Name="ExecuteBackupButton" Content="🚀 Execute Backup" 
+                            Style="{StaticResource BackupButtonStyle}" Click="ExecuteBackup_Click" 
+                            Width="130" Height="32" Margin="0,0,10,0"/>
+                                <Button Name="CancelBackupButton" Content="🛑 Cancel" 
+                            Style="{StaticResource DangerButtonStyle}" Click="CancelBackup_Click" 
+                            Width="80" Height="32" Visibility="Collapsed" Margin="0,0,15,0"/>
+
+                                <Button Name="SelectAllBackupButton" Content="✅ Select All" 
+                            Style="{StaticResource ModernButtonStyle}" Click="SelectAllBackup_Click" 
+                            Width="90" Height="32" Margin="0,0,10,0"/>
+                                <Button Name="ClearAllBackupButton" Content="❌ Clear All" 
+                            Style="{StaticResource ModernButtonStyle}" Click="ClearAllBackup_Click" 
+                            Width="90" Height="32"/>
                             </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Main Content Area (Two Columns) -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="400"/>
+                            <ColumnDefinition Width="5"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- LEFT: Scrollable Backup Task Selection -->
+                        <GroupBox Grid.Column="0" Header="📋 Backup Tasks" Background="White" 
+                      BorderBrush="#FFDDDDDD" BorderThickness="1">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="5">
+                                <StackPanel Margin="5">
+                                    <!-- Infrastructure Backup Tasks -->
+                                    <TextBlock Text="🏗️ Infrastructure" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupVDSCheckBox" Content="📡 Virtual Distributed Switches" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Port groups, uplinks, VLAN configurations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupUsersCheckBox" Content="👥 Users and Groups" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • SSO users, groups, and identity sources" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupRolesCheckBox" Content="🔐 Administration Roles" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Custom roles and privilege assignments" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupPermissionsCheckBox" Content="🛡️ Global Permissions" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • User/group permissions on vCenter objects" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,15"/>
+
+                                    <!-- Security Backup Tasks -->
+                                    <TextBlock Text="🔒 Security &amp; Identity" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupCertificatesCheckBox" Content="📜 SSL Certificates" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • vCenter and ESXi SSL certificates" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupIdentityCheckBox" Content="🆔 Identity Sources" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Active Directory and LDAP configurations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,15"/>
+
+                                    <!-- Compute Resources -->
+                                    <TextBlock Text="💻 Compute Resources" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupHostConfigCheckBox" Content="🖥️ Host Configurations" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • ESXi host settings and configurations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupVMConfigCheckBox" Content="💻 VM Configurations" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Virtual machine settings and metadata" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupClusterConfigCheckBox" Content="🏢 Cluster Configurations" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • DRS, HA, EVC, and vSAN settings" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,15"/>
+
+                                    <!-- Resource Management -->
+                                    <TextBlock Text="⚖️ Resource Management" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupResourcePoolCheckBox" Content="🏊 Resource Pools" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • CPU and memory resource allocations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupFoldersCheckBox" Content="📁 VM Folders" 
+                                  IsChecked="True" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Virtual machine folder structure" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,15"/>
+
+                                    <!-- Advanced Options -->
+                                    <TextBlock Text="⚙️ Advanced Options" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupAdvancedSettingsCheckBox" Content="🔧 Advanced Settings" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • vCenter advanced configuration parameters" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupCustomAttributesCheckBox" Content="🏷️ Custom Attributes" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Custom fields and annotations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupAlarmsCheckBox" Content="🚨 Alarms and Events" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • Alarm definitions and event configurations" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupTagsCheckBox" Content="🏷️ Tags and Categories" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • vSphere tags and tag categories" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,15"/>
+
+                                    <!-- Policies and Profiles -->
+                                    <TextBlock Text="📋 Policies &amp; Profiles" FontWeight="Bold" FontSize="14" 
+                                   Foreground="#FF2E86AB" Margin="0,0,0,10"/>
+
+                                    <CheckBox Name="BackupStoragePoliciesCheckBox" Content="💾 Storage Policies" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • VM storage policies and profiles" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupHostProfilesCheckBox" Content="👤 Host Profiles" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • ESXi host configuration profiles" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,8"/>
+
+                                    <CheckBox Name="BackupContentLibraryCheckBox" Content="📚 Content Libraries" 
+                                  IsChecked="False" Margin="10,0,0,8" FontSize="12"/>
+                                    <TextBlock Text="   • VM templates and ISO images" 
+                                   FontSize="10" Foreground="Gray" Margin="10,0,0,20"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </GroupBox>
+
+                        <!-- Splitter -->
+                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" 
+                          Background="#FFCCCCCC" ShowsPreview="True"/>
+
+                        <!-- RIGHT: Expanded Inventory Tree -->
+                        <GroupBox Grid.Column="2" Header="🌳 Source vCenter Inventory" Background="White" 
+                      BorderBrush="#FFDDDDDD" BorderThickness="1">
+                            <TreeView Name="InventoryTreeView" Background="White" BorderThickness="0" 
+                          Margin="5"/>
+                        </GroupBox>
+                    </Grid>
+
+                    <!-- Compact Progress Section -->
+                    <GroupBox Grid.Row="2" Header="📊 Backup Progress" Background="White" 
+                  BorderBrush="#FFDDDDDD" BorderThickness="1" Margin="0,10,0,0">
+                        <Grid Margin="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Overall Progress -->
+                            <Grid Grid.Row="0" Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="Progress:" FontWeight="SemiBold" 
+                               VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <ProgressBar Grid.Column="1" Name="BackupProgressBar" Height="18" 
+                                 Background="#FFF0F0F0" Foreground="#FF4CAF50" Margin="0,0,10,0"/>
+                                <TextBlock Grid.Column="2" Name="BackupProgressText" Text="0% Complete" 
+                               FontWeight="SemiBold" VerticalAlignment="Center" FontSize="12"/>
+                            </Grid>
+
+                            <!-- Current Task and Details (Horizontal Layout) -->
+                            <Grid Grid.Row="1" Margin="0,0,0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Name="CurrentBackupTaskText" 
+                               Text="Ready to start backup process..." FontWeight="SemiBold" 
+                               FontSize="12" TextTrimming="CharacterEllipsis"/>
+
+                                <TextBlock Grid.Column="2" Name="BackupDetailText" 
+                               Text="Select backup tasks and click Execute to begin." 
+                               FontStyle="Italic" Foreground="Gray" FontSize="11" 
+                               TextTrimming="CharacterEllipsis"/>
+                            </Grid>
+
+                            <!-- Detailed Progress (Compact) -->
+                            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" 
+                              HorizontalScrollBarVisibility="Disabled" MaxHeight="40">
+                                <TextBlock Name="BackupDetailedProgressText" TextWrapping="Wrap" 
+                               FontFamily="Consolas" FontSize="9" Foreground="#FF666666"/>
+                            </ScrollViewer>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -369,11 +566,12 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Migration Controls -->
-                    <GroupBox Header="🎮 Migration Controls" Grid.Column="0" Margin="5">
+                    <GroupBox Header="🎮 Migration Controls" Grid.Column="0" Margin="5"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Margin="15">
                                 <TextBlock Text="Migration Tasks:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                                          Foreground="#FF2C3E50" FontSize="14"/>
 
                                 <Button Name="MigrateHostButton" Content="🖥️ Migrate Host" 
                                        Style="{StaticResource MigrationButtonStyle}" 
@@ -387,7 +585,7 @@
 
                                 <Separator Margin="15"/>
                                 <TextBlock Text="Migration Options:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                                          Foreground="#FF2C3E50" FontSize="14"/>
 
                                 <CheckBox Name="MaintenanceModeCheckBox" Content="🔧 Enable Maintenance Mode" 
                                          IsChecked="True" Margin="5" FontSize="12"/>
@@ -400,7 +598,7 @@
 
                                 <Separator Margin="15"/>
                                 <TextBlock Text="Batch Operations:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                                          Foreground="#FF2C3E50" FontSize="14"/>
 
                                 <Button Name="BatchMigrateButton" Content="📦 Batch Migrate Selected" 
                                        Style="{StaticResource MigrationButtonStyle}" 
@@ -413,7 +611,8 @@
                     </GroupBox>
 
                     <!-- Migration Progress -->
-                    <GroupBox Header="📈 Migration Progress" Grid.Column="1" Margin="5">
+                    <GroupBox Header="📈 Migration Progress" Grid.Column="1" Margin="5"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
                         <Grid Margin="15">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -423,12 +622,12 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Name="CurrentMigrationTaskText" Grid.Row="0" Margin="0,0,0,10" 
-                                      Text="Ready for migration tasks" FontWeight="Bold" 
-                                      Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
+                                      Text="Ready for migration tasks" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
 
                             <DataGrid Name="MigrationProgressGrid" Grid.Row="1" Margin="0,0,0,10" 
                                      AutoGenerateColumns="False" CanUserAddRows="False" 
-                                     IsReadOnly="True" GridLinesVisibility="Horizontal" FontSize="11">
+                                     IsReadOnly="True" GridLinesVisibility="Horizontal"
+                                     Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Object" Binding="{Binding ObjectName}" Width="150"/>
                                     <DataGridTextColumn Header="Type" Binding="{Binding ObjectType}" Width="80"/>
@@ -441,14 +640,14 @@
                             </DataGrid>
 
                             <StackPanel Grid.Row="2" Margin="0,10">
-                                <TextBlock Text="Overall Migration Progress:" FontWeight="Bold" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
-                                <ProgressBar Name="OverallProgressBar" Height="25" Margin="0,5"/>
+                                <TextBlock Text="Overall Migration Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
+                                <ProgressBar Name="OverallProgressBar" Height="25" Margin="0,5"
+                                           Background="#FFEEEEEE" Foreground="#FFFF9800"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                     <TextBlock Name="OverallProgressText" Text="0% Complete" Margin="0,0,20,0" 
-                                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11"/>
+                                              Foreground="#FF666666" FontSize="11"/>
                                     <TextBlock Name="EstimatedTimeText" Text="Estimated time: --" 
-                                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11"/>
+                                              Foreground="Gray" FontSize="11"/>
                                 </StackPanel>
                             </StackPanel>
 
@@ -474,11 +673,12 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Validation Controls -->
-                    <GroupBox Header="🔍 Validation Tests" Grid.Column="0" Margin="5">
+                    <GroupBox Header="🔍 Validation Tests" Grid.Column="0" Margin="5"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel Margin="15">
                                 <TextBlock Text="Pre-Migration Validation:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                                          Foreground="#FF2C3E50" FontSize="14"/>
 
                                 <CheckBox Name="ValidateConnectivityCheckBox" Content="🔌 Connectivity Tests" 
                                          IsChecked="True" Margin="5" FontSize="12"/>
@@ -495,7 +695,7 @@
 
                                 <Separator Margin="15"/>
                                 <TextBlock Text="Post-Migration Validation:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="14"/>
+                                          Foreground="#FF2C3E50" FontSize="14"/>
 
                                 <CheckBox Name="ValidateServicesCheckBox" Content="⚙️ Service Status" 
                                          IsChecked="True" Margin="5" FontSize="12"/>
@@ -523,7 +723,8 @@
                     </GroupBox>
 
                     <!-- Validation Results -->
-                    <GroupBox Header="📋 Validation Results" Grid.Column="1" Margin="5">
+                    <GroupBox Header="📋 Validation Results" Grid.Column="1" Margin="5"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -532,13 +733,13 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Name="CurrentValidationTaskText" Grid.Row="0" Margin="0,0,0,10" 
-                                      Text="Ready to run validation tests" FontWeight="Bold" 
-                                      Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
+                                      Text="Ready to run validation tests" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
 
                             <ScrollViewer Grid.Row="1" Margin="0,0,0,10">
                                 <DataGrid Name="ValidationResultsGrid" 
                                          AutoGenerateColumns="False" CanUserAddRows="False" 
-                                         IsReadOnly="True" GridLinesVisibility="Horizontal" FontSize="11">
+                                         IsReadOnly="True" GridLinesVisibility="Horizontal"
+                                         Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Test Name" Binding="{Binding TestName}" Width="200"/>
                                         <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="100"/>
@@ -549,66 +750,56 @@
                             </ScrollViewer>
 
                             <StackPanel Grid.Row="2" Margin="0,10">
-                                <TextBlock Text="Validation Progress:" FontWeight="Bold" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" FontSize="12"/>
-                                <ProgressBar Name="ValidationProgressBar" Height="25" Margin="0,5"/>
+                                <TextBlock Text="Validation Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
+                                <ProgressBar Name="ValidationProgressBar" Height="25" Margin="0,5"
+                                           Background="#FFEEEEEE" Foreground="#FF4CAF50"/>
                                 <TextBlock Name="ValidationProgressText" Text="0% Complete" 
-                                          HorizontalAlignment="Center" Margin="0,5" 
-                                          Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" FontSize="11"/>
+                                          HorizontalAlignment="Center" Margin="0,5" Foreground="#FF666666" FontSize="11"/>
                             </StackPanel>
                         </Grid>
                     </GroupBox>
                 </Grid>
             </TabItem>
+
+            <!-- Activity Log TAB -->
+            <TabItem x:Name="ActivityLogTab" Header="📝 Activity Log" FontSize="14">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!--  Log-level filter bar -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,5">
+                        <TextBlock Text="Log Level:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                        <ComboBox x:Name="LogLevelComboBox" Width="120"
+                              SelectionChanged="LogLevelComboBox_SelectionChanged">
+                            <ComboBoxItem Content="INFO"  IsSelected="True"/>
+                            <ComboBoxItem Content="WARN"/>
+                            <ComboBoxItem Content="ERROR"/>
+                            <ComboBoxItem Content="DEBUG"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!--  Scrollable log text  -->
+                    <ScrollViewer x:Name="LogScrollViewer" Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+                        <TextBox x:Name="LogTextBox" FontFamily="Consolas"
+                         FontSize="12" IsReadOnly="True" AcceptsReturn="True"
+                         TextWrapping="NoWrap"/>
+                    </ScrollViewer>
+
+                    <!--  Clear / Save buttons -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="2"
+                        HorizontalAlignment="Right" Margin="0,5,0,0">
+                        <Button Content="🗑️ Clear" Style="{StaticResource ModernButtonStyle}"
+                        Margin="0,0,5,0" Click="ClearLog_Click"/>
+                        <Button Content="💾 Save"  Style="{StaticResource ModernButtonStyle}"
+                        Click="SaveLog_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
-
-        <!-- GridSplitter for resizing -->
-        <GridSplitter Grid.Row="2" 
-                      Height="5" 
-                      HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Stretch"
-                      Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
-                      ShowsPreview="True"
-                      ResizeBehavior="PreviousAndNext"
-                      ResizeDirection="Rows"/>
-
-        <!-- Log Output (resizable) -->
-        <GroupBox Header="📝 Activity Log" Grid.Row="3" Margin="10">
-            <Grid Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
-                    <Button Name="ClearLogButton" Content="🗑️ Clear Log" 
-                           Style="{StaticResource ModernButtonStyle}" Click="ClearLog_Click"/>
-                    <Button Name="SaveLogButton" Content="💾 Save Log" 
-                           Style="{StaticResource ModernButtonStyle}" Click="SaveLog_Click"/>
-                    <ComboBox Name="LogLevelComboBox" Width="100" Margin="10,0,0,0" SelectedIndex="0" FontSize="11">
-                        <ComboBoxItem Content="All"/>
-                        <ComboBoxItem Content="INFO"/>
-                        <ComboBoxItem Content="WARNING"/>
-                        <ComboBoxItem Content="ERROR"/>
-                    </ComboBox>
-
-                    <TextBlock Text="↕️ Drag the splitter above to resize" 
-                              VerticalAlignment="Center" 
-                              Margin="20,0,0,0" 
-                              Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
-                              FontSize="10" 
-                              FontStyle="Italic"/>
-                </StackPanel>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <TextBox Name="LogTextBox" IsReadOnly="True" 
-                             FontFamily="Consolas" FontSize="10" 
-                             Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                             Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
-                             AcceptsReturn="True" TextWrapping="Wrap"
-                             BorderThickness="0"/>
-                </ScrollViewer>
-            </Grid>
-        </GroupBox>
     </Grid>
 </Window>
