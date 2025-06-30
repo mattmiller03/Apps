@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Connection Settings Manager"
-        Height="600" Width="800"
+        Height="862" Width="829"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize">
     <Grid Margin="20">
@@ -21,7 +21,7 @@
 
                 <ListBox Name="ProfilesListBox" Grid.Row="0" Margin="5"
                          ItemsSource="{Binding Profiles}"
-                         SelectedItem="{Binding SelectedProfile, Mode=TwoWay}">
+                         SelectedItem="{Binding SelectedProfile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Vertical" Margin="5">
@@ -54,7 +54,7 @@
                     <!-- Profile Name -->
                     <TextBlock Text="Profile Name:" FontWeight="Bold" Margin="0,0,0,5"/>
                     <TextBox Name="ProfileNameTextBox" Margin="0,0,0,15" Padding="8"
-                             Text="{Binding SelectedProfile.ProfileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding CurrentSettings.ProfileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <!-- Source vCenter -->
                     <TextBlock Text="Source vCenter 7.x:" FontWeight="Bold" FontSize="14"
@@ -62,17 +62,17 @@
 
                     <TextBlock Text="Server:" Margin="0,5,0,2"/>
                     <TextBox Name="SourceServerTextBox" Margin="0,0,0,10" Padding="8"
-                             Text="{Binding SelectedProfile.SourceServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding CurrentSettings.SourceServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Text="Username:" Margin="0,5,0,2"/>
                     <TextBox Name="SourceUsernameTextBox" Margin="0,0,0,10" Padding="8"
-                             Text="{Binding SelectedProfile.SourceUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding CurrentSettings.SourceUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Text="Password:" Margin="0,5,0,2"/>
                     <PasswordBox Name="SourcePasswordBox" Margin="0,0,0,5" Padding="8"
                                  PasswordChanged="SourcePasswordBox_PasswordChanged"/>
                     <CheckBox Name="SaveSourcePasswordCheckBox" Content="💾 Save password (encrypted)"
-                              Margin="0,0,0,15" IsChecked="{Binding SelectedProfile.SaveSourcePassword, Mode=TwoWay}"/>
+                              Margin="0,0,0,15" IsChecked="{Binding CurrentSettings.SaveSourcePassword, Mode=TwoWay}"/>
 
                     <!-- Destination vCenter -->
                     <TextBlock Text="Destination vCenter 8.x:" FontWeight="Bold" FontSize="14"
@@ -80,17 +80,17 @@
 
                     <TextBlock Text="Server:" Margin="0,5,0,2"/>
                     <TextBox Name="DestServerTextBox" Margin="0,0,0,10" Padding="8"
-                             Text="{Binding SelectedProfile.DestinationServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding CurrentSettings.DestinationServer, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Text="Username:" Margin="0,5,0,2"/>
                     <TextBox Name="DestUsernameTextBox" Margin="0,0,0,10" Padding="8"
-                             Text="{Binding SelectedProfile.DestinationUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                             Text="{Binding CurrentSettings.DestinationUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Text="Password:" Margin="0,5,0,2"/>
                     <PasswordBox Name="DestPasswordBox" Margin="0,0,0,5" Padding="8"
                                  PasswordChanged="DestPasswordBox_PasswordChanged"/>
                     <CheckBox Name="SaveDestPasswordCheckBox" Content="💾 Save password (encrypted)"
-                              Margin="0,0,0,15" IsChecked="{Binding SelectedProfile.SaveDestinationPassword, Mode=TwoWay}"/>
+                              Margin="0,0,0,15" IsChecked="{Binding CurrentSettings.SaveDestinationPassword, Mode=TwoWay}"/>
 
                     <!-- Backup Path -->
                     <TextBlock Text="Default Backup Path:" FontWeight="Bold" FontSize="14"
@@ -101,7 +101,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBox Name="BackupPathTextBox" Grid.Column="0" Margin="0,0,5,15" Padding="8"
-                                 Text="{Binding SelectedProfile.BackupPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                 Text="{Binding CurrentSettings.BackupPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         <Button Name="BrowsePathButton" Grid.Column="1" Content="📂 Browse"
                                 Style="{StaticResource ModernButtonStyle}"
                                 Command="{Binding BrowsePathCommand}"/>
@@ -111,7 +111,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                         <Button Name="SaveProfileButton" Content="💾 Save Profile"
                                 Style="{StaticResource ModernButtonStyle}"
-                                Command="{Binding SaveProfileCommand}"
+                                Command="{Binding SaveProfileAsyncCommand}"
                                 Width="120"/>
                         <Button Name="LoadProfileButton" Content="📂 Load and Close"
                                 Style="{StaticResource ModernButtonStyle}"

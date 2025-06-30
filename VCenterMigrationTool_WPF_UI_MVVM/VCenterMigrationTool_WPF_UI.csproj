@@ -11,6 +11,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Utilities\Archive_PowerShellManager.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.1" />
 		<PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
@@ -23,9 +27,6 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Compile>
 	  <Compile Update="Utilities\ConnectionManager.cs">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Compile>
-	  <Compile Update="Utilities\PowerShellManager.cs">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Compile>
 	  <Compile Update="Views\ConnectionSettingsWindow.xaml.cs">

@@ -8,6 +8,9 @@
         Height="1059" Width="1400"
         WindowStartupLocation="CenterScreen"
         WindowState="Normal">
+    <Window.DataContext>
+        <ViewModels:ConnectionSettingsViewModel />
+    </Window.DataContext>
     <Window.Resources>
         <!-- Modern Button Style -->
         <Style x:Key="ModernButtonStyle" TargetType="Button">
@@ -146,8 +149,8 @@
                 <MenuItem Header="🔌 Connect to vCenter" Background="#FF34495E" Foreground="White"/>
                 <MenuItem Header="🔌 Disconnect All" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
-                <MenuItem Header="📥 Import Configuration" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="📤 Export Configuration" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📥 Import Configuration" Command="{Binding ImportConfigurationCommand}" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📤 Export Configuration" Command="{Binding ExportConfigurationCommand}" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
                 <MenuItem Header="❌ Exit" Background="#FF34495E" Foreground="White"/>
             </MenuItem>
@@ -156,8 +159,8 @@
                 <MenuItem Header="🔍 Test Connectivity" Background="#FF34495E" Foreground="White"/>
                 <MenuItem Header="✅ Validate Prerequisites" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
-                <MenuItem Header="💾 Connection Settings" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="📂 Load Connection Profile" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="💾 Connection Settings" Command="{Binding OpenConnectionSettingsCommand}" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📂 Load Connection Profile" Command="{Binding LoadProfileCommand}" IsEnabled="{Binding !IsLoadingProfile}" Background="#FF34495E" Foreground="White"/>
                 <MenuItem Header="💾 Save Current Settings" Background="#FF34495E" Foreground="White"/>
             </MenuItem>
             <MenuItem Header="Help" Foreground="White" FontSize="12">

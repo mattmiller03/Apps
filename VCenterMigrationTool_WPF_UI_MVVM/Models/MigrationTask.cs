@@ -1,9 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using VCenterMigrationTool_WPF_UI.Models;
-using VCenterMigrationTool_WPF_UI.Utilities;
-using VCenterMigrationTool_WPF_UI.ViewModels;
 
 namespace VCenterMigrationTool_WPF_UI.Models
 {
@@ -14,11 +11,12 @@ namespace VCenterMigrationTool_WPF_UI.Models
         private MigrationStatus _status;
         private double _progress;
         private DateTime _startTime;
+        private DateTime? _endTime;
         private string _details = string.Empty;
 
         public string ObjectName
         {
-            get { return _objectName; }
+            get => _objectName;
             set
             {
                 if (_objectName != value)
@@ -31,7 +29,7 @@ namespace VCenterMigrationTool_WPF_UI.Models
 
         public string ObjectType
         {
-            get { return _objectType; }
+            get => _objectType;
             set
             {
                 if (_objectType != value)
@@ -44,21 +42,21 @@ namespace VCenterMigrationTool_WPF_UI.Models
 
         public MigrationStatus Status
         {
-            get { return _status; }
+            get => _status;
             set
             {
                 if (_status != value)
                 {
                     _status = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(Duration)); // Recalculate duration when status changes
+                    OnPropertyChanged(nameof(Duration));
                 }
             }
         }
 
         public double Progress
         {
-            get { return _progress; }
+            get => _progress;
             set
             {
                 if (_progress != value)
@@ -71,14 +69,41 @@ namespace VCenterMigrationTool_WPF_UI.Models
 
         public DateTime StartTime
         {
-            get { return _startTime; }
+            get => _startTime;
             set
             {
                 if (_startTime != value)
                 {
                     _startTime = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(Duration)); // Recalculate duration when start time changes
+                    OnPropertyChanged(nameof(Duration));
+                }
+            }
+        }
+
+        public DateTime? EndTime
+        {
+            get => _endTime;
+            set
+            {
+                if (_endTime != value)
+                {
+                    _endTime = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(Duration));
+                }
+            }
+        }
+
+        public string Details
+        {
+            get => _details;
+            set
+            {
+                if (_details != value)
+                {
+                    _details = value;
+                    OnPropertyChanged();
                 }
             }
         }
@@ -87,24 +112,15 @@ namespace VCenterMigrationTool_WPF_UI.Models
         {
             get
             {
-                if (Status == MigrationStatus.InProgress || Status == MigrationStatus.Completed || Status == MigrationStatus.Failed || Status == MigrationStatus.Cancelled)
+                if (EndTime.HasValue && StartTime != DateTime.MinValue)
+                {
+                    return EndTime.Value - StartTime;
+                }
+                else if (Status == MigrationStatus.InProgress && StartTime != DateTime.MinValue)
                 {
                     return DateTime.Now - StartTime;
                 }
-                return TimeSpan.Zero; // Or some other appropriate default
-            }
-        }
-
-        public string Details
-        {
-            get { return _details; }
-            set
-            {
-                if (_details != value)
-                {
-                    _details = value;
-                    OnPropertyChanged();
-                }
+                return TimeSpan.Zero;
             }
         }
 
@@ -118,7 +134,7 @@ namespace VCenterMigrationTool_WPF_UI.Models
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
     }
 

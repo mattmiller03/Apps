@@ -8,24 +8,10 @@ namespace VCenterMigrationTool_WPF_UI;
 
 public partial class MainWindow : Window
 {
-    public ConnectionSettingsViewModel ConnectionSettingsVM { get; }
-    public MigrationViewModel MigrationVM { get; }
-    public ValidationViewModel ValidationVM { get; }
-    public LogViewModel LogVM { get; }
-
-    public MainWindow()
+    public MainWindow(ConnectionSettingsViewModel viewModel)  // Inject the ViewModel
     {
         InitializeComponent();
-
-        ConnectionSettingsVM = new ConnectionSettingsViewModel();
-        MigrationVM = new MigrationViewModel();
-        ValidationVM = new ValidationViewModel();
-        LogVM = new LogViewModel();
-
-        Resources["ConnectionSettingsViewModel"] = ConnectionSettingsVM;
-        Resources["MigrationViewModel"] = MigrationVM;
-        Resources["ValidationViewModel"] = ValidationVM;
-        Resources["LogViewModel"] = LogVM;
+        DataContext = viewModel;
     }
 
     // Optional: PasswordBox <-> ViewModel relay (since WPF does not bind Password)

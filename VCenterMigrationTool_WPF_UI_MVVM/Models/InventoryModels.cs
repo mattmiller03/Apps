@@ -120,6 +120,7 @@ namespace VCenterMigrationTool_WPF_UI.Models
     public class DatacenterInfo : InventoryItemBase
     {
         public DatacenterInfo(string name, string id) : base(name, id) { }
+
     }
 
     public class ClusterInfo : InventoryItemBase
