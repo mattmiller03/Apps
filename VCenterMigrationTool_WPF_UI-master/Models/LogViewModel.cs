@@ -7,7 +7,10 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input; // Use the toolkit's RelayCommand
 using Microsoft.Win32;
-using VCenterMigrationTool_WPF_UI; // For LogEntry and LogLevel
+using VCenterMigrationTool_WPF_UI;
+using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Utilities;
+using VCenterMigrationTool_WPF_UI.ViewModels;// For LogEntry and LogLevel
 
 namespace VCenterMigrationTool_WPF_UI.ViewModels
 {

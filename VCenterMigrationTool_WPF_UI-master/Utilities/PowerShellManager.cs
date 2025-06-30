@@ -2,7 +2,16 @@
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text.Json;
-using VCenterMigrationTool_WPF_UI.Models; // ← ADD THIS LINE
+using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Utilities;
+using VCenterMigrationTool_WPF_UI.ViewModels;
+using System.Threading.Tasks;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Collections.Generic;
+
 
 namespace VCenterMigrationTool_WPF_UI.Utilities;
 

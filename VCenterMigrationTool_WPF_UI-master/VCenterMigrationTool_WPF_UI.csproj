@@ -6,20 +6,16 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+		<UseWindowsForms>False</UseWindowsForms>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.1" />
-		<PackageReference Include="Microsoft.Toolkit.Wpf.UI.Controls" Version="6.1.2" />
 		<PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
 		<PackageReference Include="System.Management.Automation" Version="7.5.1" />
-		<PackageReference Include="Verify.CommunityToolkit.Mvvm" Version="1.1.0" />
-		<PackageReference Include="WPF-UI" Version="4.0.3" />
-		<PackageReference Include="WPF-UI.Abstractions" Version="4.0.3" />
-		<PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.3" />
-		<PackageReference Include="WPF-UI.Tray" Version="4.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>

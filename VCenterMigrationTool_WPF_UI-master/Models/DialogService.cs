@@ -2,6 +2,9 @@
 using System.IO;
 using System.Windows;
 using Microsoft.Win32;
+using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Utilities;
+using VCenterMigrationTool_WPF_UI.ViewModels;
 
 namespace VCenterMigrationTool_WPF_UI.Utilities
 {

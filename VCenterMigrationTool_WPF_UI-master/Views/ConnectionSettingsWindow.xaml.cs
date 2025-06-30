@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.ViewModels;
@@ -15,9 +16,19 @@ namespace VCenterMigrationTool_WPF_UI
             InitializeComponent();
             _viewModel = viewModel;
             DataContext = _viewModel;
-
-            // Subscribe to DialogResult changes from ViewModel
             _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        }
+
+        private void SourcePasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.SelectedProfile != null)
+                _viewModel.SelectedProfile.SourcePassword = ((PasswordBox)sender).Password;
+        }
+
+        private void DestPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.SelectedProfile != null)
+                _viewModel.SelectedProfile.DestinationPassword = ((PasswordBox)sender).Password;
         }
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -26,17 +37,18 @@ namespace VCenterMigrationTool_WPF_UI
             {
                 if (_viewModel.DialogResult.HasValue)
                 {
-                    DialogResult = _viewModel.DialogResult; // Set the DialogResult
+                    DialogResult = _viewModel.DialogResult;
                     Close();
                 }
             }
         }
 
-        // Parameterless constructor for design-time support (or testing)
-        public ConnectionSettingsWindow() : this(new ConnectionSettingsViewModel(new ConnectionManager(), new DialogService()))
-        {
-        }
+        public ConnectionSettings? SelectedSettings => _viewModel.SelectedProfile;
 
-        public ConnectionSettings? SelectedSettings => _viewModel.SelectedProfile; // Read-only property
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        }
     }
 }

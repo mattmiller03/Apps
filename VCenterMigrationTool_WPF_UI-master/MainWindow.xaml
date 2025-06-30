@@ -116,15 +116,14 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
+
     <Grid Background="#FFF8F9FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="5"/>
-            <RowDefinition Height="200" MinHeight="100" MaxHeight="600"/>
         </Grid.RowDefinitions>
         <!-- Menu Bar -->
-        <Menu Grid.Row="0" Background="#FF2C3E50" Foreground="White" Height="32">
+        <Menu Grid.Row="0" Background="#FF2C3E50" Foreground="White" Height="32" >
             <Menu.Resources>
                 <Style TargetType="MenuItem">
                     <Setter Property="Foreground" Value="White"/>
@@ -144,32 +143,32 @@
                 </Style>
             </Menu.Resources>
             <MenuItem Header="File" Foreground="White" FontSize="12">
-                <MenuItem Header="🔌 Connect to vCenter" Click="ConnectVCenter_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="🔌 Disconnect All" Click="DisconnectAll_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="🔌 Connect to vCenter" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="🔌 Disconnect All" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
-                <MenuItem Header="📥 Import Configuration" Click="ImportConfig_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="📤 Export Configuration" Click="ExportConfig_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📥 Import Configuration" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📤 Export Configuration" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
-                <MenuItem Header="❌ Exit" Click="Exit_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="❌ Exit" Background="#FF34495E" Foreground="White"/>
             </MenuItem>
             <MenuItem Header="Tools" Foreground="White" FontSize="12">
-                <MenuItem Header="⚙️ PowerCLI Configuration" Click="PowerCLIConfig_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="🔍 Test Connectivity" Click="TestConnectivity_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="✅ Validate Prerequisites" Click="ValidatePrerequisites_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="⚙️ PowerCLI Configuration" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="🔍 Test Connectivity" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="✅ Validate Prerequisites" Background="#FF34495E" Foreground="White"/>
                 <Separator/>
-                <MenuItem Header="💾 Connection Settings" Click="ConnectionSettings_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="📂 Load Connection Profile" Click="LoadConnectionProfile_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="💾 Save Current Settings" Click="SaveCurrentSettings_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="💾 Connection Settings" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📂 Load Connection Profile" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="💾 Save Current Settings" Background="#FF34495E" Foreground="White"/>
             </MenuItem>
             <MenuItem Header="Help" Foreground="White" FontSize="12">
-                <MenuItem Header="📖 Documentation" Click="Documentation_Click" Background="#FF34495E" Foreground="White"/>
-                <MenuItem Header="ℹ️ About" Click="About_Click" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="📖 Documentation" Background="#FF34495E" Foreground="White"/>
+                <MenuItem Header="ℹ️ About" Background="#FF34495E" Foreground="White"/>
             </MenuItem>
         </Menu>
         <!-- Main Content Tabs -->
-        <TabControl Grid.Row="1" Name="MainTabControl" Margin="10" Background="White">
+        <TabControl Grid.Row="1" Margin="10" Background="White">
             <!-- Connection Tab -->
-            <TabItem Header="🔌 Connection" FontSize="14" Name="ConnectionTab" DataContext="{Binding ConnectionViewModel}">
+            <TabItem Header="🔌 Connection" FontSize="14">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="20">
                         <Grid.ColumnDefinitions>
@@ -187,17 +186,16 @@
                             <StackPanel Margin="20">
                                 <TextBlock Text="📍 Source vCenter 7.x" Style="{StaticResource HeaderTextStyle}" Margin="0,0,0,10"/>
                                 <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="{Binding SourceVCenter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Style="{StaticResource ModernTextBoxStyle}"
+                                         Text="{Binding CurrentSettings.SourceServer, Mode=TwoWay}" />
                                 <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="{Binding SourceUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Style="{StaticResource ModernTextBoxStyle}"
+                                         Text="{Binding CurrentSettings.SourceUsername, Mode=TwoWay}" />
                                 <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}" />
-                                <Button Name="ConnectSourceButton" Content="🔗 Connect"
-                                        Style="{StaticResource ConnectButtonStyle}"
-                                        Command="{Binding ConnectSourceCommand}"
-                                        IsEnabled="{Binding IsSourceConnected, Converter={StaticResource BooleanToInverseConverter}}"
+                                <PasswordBox Style="{StaticResource ModernPasswordBoxStyle}" PasswordChanged="SourcePasswordBox_PasswordChanged"/>
+                                <Button Style="{StaticResource ConnectButtonStyle}"
+                                        Content="🔗 Connect"
+                                        Command="{Binding ConnectSourceCommand}" 
                                         Margin="5,20,5,5" Height="40"/>
                             </StackPanel>
                         </Border>
@@ -207,17 +205,16 @@
                             <StackPanel Margin="20">
                                 <TextBlock Text="🎯 Destination vCenter 8.x" Style="{StaticResource HeaderTextStyle}" Margin="0,0,0,10"/>
                                 <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="{Binding DestVCenter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Style="{StaticResource ModernTextBoxStyle}"
+                                         Text="{Binding CurrentSettings.DestinationServer, Mode=TwoWay}" />
                                 <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="{Binding DestUsername, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Style="{StaticResource ModernTextBoxStyle}"
+                                         Text="{Binding CurrentSettings.DestinationUsername, Mode=TwoWay}" />
                                 <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}" />
-                                <Button Name="ConnectDestButton" Content="🔗 Connect"
-                                        Style="{StaticResource ConnectButtonStyle}"
+                                <PasswordBox Style="{StaticResource ModernPasswordBoxStyle}" PasswordChanged="DestPasswordBox_PasswordChanged"/>
+                                <Button Style="{StaticResource ConnectButtonStyle}"
+                                        Content="🔗 Connect"
                                         Command="{Binding ConnectDestCommand}"
-                                        IsEnabled="{Binding IsDestConnected, Converter={StaticResource BooleanToInverseConverter}}"
                                         Margin="5,20,5,5" Height="40"/>
                             </StackPanel>
                         </Border>
@@ -234,26 +231,22 @@
                                     <Ellipse Width="12" Height="12" Margin="0,0,5,0"
                                              Fill="{Binding SourceStatusColor}"/>
                                     <TextBlock Text="Source Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="SourceStatusText" Text="{Binding SourceStatus}"
-                                               Style="{StaticResource StatusTextStyle}"/>
-                                    <TextBlock Name="SourceVersionText" Text="{Binding SourceVersion}"
-                                               Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
+                                    <TextBlock Text="{Binding SourceStatus}" Style="{StaticResource StatusTextStyle}"/>
+                                    <TextBlock Text="{Binding SourceVersion}" Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                     <Ellipse Width="12" Height="12" Margin="0,0,5,0"
                                              Fill="{Binding DestStatusColor}"/>
                                     <TextBlock Text="Destination Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="DestStatusText" Text="{Binding DestStatus}"
-                                               Style="{StaticResource StatusTextStyle}"/>
-                                    <TextBlock Name="DestVersionText" Text="{Binding DestVersion}"
-                                               Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
+                                    <TextBlock Text="{Binding DestStatus}" Style="{StaticResource StatusTextStyle}"/>
+                                    <TextBlock Text="{Binding DestVersion}" Style="{StaticResource StatusTextStyle}" Foreground="Gray" Margin="10,0,0,0"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Button Name="TestConnectionButton" Content="🔍 Test"
-                                            Style="{StaticResource ModernButtonStyle}"
+                                    <Button Style="{StaticResource ModernButtonStyle}"
+                                            Content="🔍 Test"
                                             Command="{Binding TestConnectionCommand}" Margin="0,0,5,0"/>
-                                    <Button Name="DisconnectButton" Content="🔌 Disconnect"
-                                            Style="{StaticResource DangerButtonStyle}"
+                                    <Button Style="{StaticResource DangerButtonStyle}"
+                                            Content="🔌 Disconnect"
                                             Command="{Binding DisconnectAllCommand}"/>
                                 </StackPanel>
                             </Grid>
@@ -261,338 +254,93 @@
                     </Grid>
                 </ScrollViewer>
             </TabItem>
-            <!-- Backup Tab -->
-            <TabItem Header="💾 Backup Tasks" FontSize="14">
-                <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="350"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <!-- Backup Task Selection -->
-                    <GroupBox Header="📋 Select Backup Tasks" Grid.Column="0" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Height="713">
-                            <StackPanel Margin="15" Height="730">
-                                <TextBlock Text="vCenter Level Backups:" FontWeight="Bold" Margin="0,0,0,10" 
-                                          Foreground="#FF2C3E50" FontSize="14"/>
-                                <CheckBox Name="BackupVDSCheckBox" Content="🔗 Virtual Distributed Switches" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupUsersCheckBox" Content="👥 Users and Groups" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupRolesCheckBox" Content="🔐 Administration Roles" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupPermissionsCheckBox" Content="🛡️ Global Permissions" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupCertificatesCheckBox" Content="📜 Certificates" 
-                                         Margin="5" IsChecked="False" FontSize="12"/>
-                                <CheckBox Name="BackupIdentityCheckBox" Content="🆔 Identity Sources" 
-                                         Margin="5" IsChecked="False" FontSize="12"/>
-                                <Separator Margin="10"/>
-                                <TextBlock Text="Infrastructure Backups:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="#FF2C3E50" FontSize="14"/>
-                                <CheckBox Name="BackupHostConfigCheckBox" Content="🖥️ Host Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupVMConfigCheckBox" Content="💻 VM Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupClusterConfigCheckBox" Content="🏢 Cluster Configurations" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupResourcePoolCheckBox" Content="🏊 Resource Pools" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <CheckBox Name="BackupFoldersCheckBox" Content="📁 VM Folders" 
-                                         Margin="5" IsChecked="True" FontSize="12"/>
-                                <Separator Margin="15"/>
-                                <StackPanel>
-                                    <Button Name="SelectAllBackupButton" Content="✅ Select All" 
-                                           Style="{StaticResource ModernButtonStyle}" Click="SelectAllBackup_Click"/>
-                                    <Button Name="ClearAllBackupButton" Content="❌ Clear All" 
-                                           Style="{StaticResource ModernButtonStyle}" Click="ClearAllBackup_Click"/>
-                                </StackPanel>
-                                <Separator Margin="15"/>
-                                <TextBlock Text="Backup Location:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="14"/>
-                                <TextBox Name="BackupPathTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                        Text="C:\VCenterMigration\Backup"/>
-                                <Button Name="BrowseBackupButton" Content="📂 Browse" 
-                                       Style="{StaticResource ModernButtonStyle}" Click="BrowseBackup_Click"/>
-                                <Separator Margin="15"/>
-                                <Button x:Name="ExecuteBackupButton" Content="🚀 Execute Backup" 
-                                       Style="{StaticResource BackupButtonStyle}" 
-                                       FontSize="14" Height="45" Click="ExecuteBackup_Click" Width="138"/>
-                                <Button x:Name="CancelBackupButton" Content="🛑 Cancel Backup" Style="{StaticResource DangerButtonStyle}" Width="146" Click="CancelBackup_Click" IsEnabled="False" Visibility="Collapsed"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </GroupBox>
-                    <!-- Backup Progress -->
-                    <GroupBox Header="🎯 Backup Progress" Grid.Column="1" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <Grid Margin="15">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <!-- Scope Selection -->
-                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-                                <TextBlock Text="Backup Scope:" FontWeight="Bold" VerticalAlignment="Center" 
-                                          Margin="0,0,10,0" Foreground="#FF2C3E50" FontSize="14"/>
-                                <ComboBox Name="ScopeComboBox" Width="200" SelectedIndex="0" FontSize="12"
-                                         SelectionChanged="ScopeComboBox_SelectionChanged">
-                                    <ComboBoxItem Content="🌐 vCenter Level"/>
-                                    <ComboBoxItem Content="🏢 Cluster Level"/>
-                                    <ComboBoxItem Content="🖥️ Host Level"/>
-                                    <ComboBoxItem Content="💻 VM Level"/>
-                                </ComboBox>
-                            </StackPanel>
-                            <!-- Inventory Tree -->
-                            <GroupBox Header="📊 vCenter Inventory" Grid.Row="1" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                                <ScrollViewer>
-                                    <TreeView Name="InventoryTreeView" Margin="5" Background="White" FontSize="11"/>
-                                </ScrollViewer>
-                            </GroupBox>
-                            <!-- Current Task -->
-                            <StackPanel Grid.Row="2" Margin="0,15">
-                                <TextBlock Name="CurrentBackupTaskText" 
-                                    Text="Ready to start backup process..." 
-                                    FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                                <TextBlock x:Name="BackupDetailText" 
-                                           Text="Select backup tasks and click Execute Backup to begin."
-                                           Margin="0,5,0,0"
-                                           FontSize="11"
-                                           Foreground="#666666"
-                                           TextWrapping="Wrap"/>
-                            </StackPanel>
-                            <StackPanel Grid.Row="3" Margin="0,10,0,0">
-                                <TextBlock Text="Overall Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                                <ProgressBar Name="BackupProgressBar" Height="25" Margin="0,5" 
-                                           Background="#FFEEEEEE" Foreground="#FF4CAF50"/>
-                                <TextBlock Name="BackupProgressText" Text="0% Complete" 
-                                          HorizontalAlignment="Center" Margin="0,5" Foreground="#FF666666" FontSize="11"/>
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
-                </Grid>
-            </TabItem>
             <!-- Migration Tab -->
             <TabItem Header="🚀 Migration Tasks" FontSize="14">
                 <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <!-- Migration Controls -->
-                    <GroupBox Header="🎮 Migration Controls" Grid.Column="0" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="15">
-                                <TextBlock Text="Migration Tasks:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="#FF2C3E50" FontSize="14"/>
-                                <Button Name="MigrateHostButton" Content="🖥️ Migrate Host" 
-                                       Style="{StaticResource MigrationButtonStyle}" 
-                                       Click="MigrateHost_Click"/>
-                                <Button Name="MigrateVMButton" Content="💻 Migrate VM" 
-                                       Style="{StaticResource MigrationButtonStyle}" 
-                                       Click="MigrateVM_Click"/>
-                                <Button Name="MigrateClusterButton" Content="🏢 Migrate Cluster" 
-                                       Style="{StaticResource MigrationButtonStyle}" 
-                                       Click="MigrateCluster_Click"/>
-                                <Separator Margin="15"/>
-                                <TextBlock Text="Migration Options:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="#FF2C3E50" FontSize="14"/>
-                                <CheckBox Name="MaintenanceModeCheckBox" Content="🔧 Enable Maintenance Mode" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ClearEphemeralCheckBox" Content="🧹 Clear Ephemeral Networks" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="RestoreSettingsCheckBox" Content="⚙️ Restore Settings" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateAfterCheckBox" Content="✅ Validate After Migration" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <Separator Margin="15"/>
-                                <TextBlock Text="Batch Operations:" FontWeight="Bold" Margin="0,0,0,10"
-                                          Foreground="#FF2C3E50" FontSize="14"/>
-                                <Button Name="BatchMigrateButton" Content="📦 Batch Migrate Selected" 
-                                       Style="{StaticResource MigrationButtonStyle}" 
-                                       Click="BatchMigrate_Click"/>
-                                <Button Name="RollbackButton" Content="↩️ Rollback Migration" 
-                                       Style="{StaticResource DangerButtonStyle}" 
-                                       Click="Rollback_Click"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </GroupBox>
-                    <!-- Migration Progress -->
-                    <GroupBox Header="📈 Migration Progress" Grid.Column="1" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <Grid Margin="15">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Name="CurrentMigrationTaskText" Grid.Row="0" Margin="0,0,0,10" 
-                                      Text="Ready for migration tasks" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                            <DataGrid Name="MigrationProgressGrid" Grid.Row="1" Margin="0,0,0,10" 
-                                     AutoGenerateColumns="False" CanUserAddRows="False" 
-                                     IsReadOnly="True" GridLinesVisibility="Horizontal"
-                                     Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Object" Binding="{Binding ObjectName}" Width="150"/>
-                                    <DataGridTextColumn Header="Type" Binding="{Binding ObjectType}" Width="80"/>
-                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
-                                    <DataGridTextColumn Header="Progress" Binding="{Binding Progress}" Width="80"/>
-                                    <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime}" Width="120"/>
-                                    <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="80"/>
-                                    <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <StackPanel Grid.Row="2" Margin="0,10">
-                                <TextBlock Text="Overall Migration Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                                <ProgressBar Name="OverallProgressBar" Height="25" Margin="0,5"
-                                           Background="#FFEEEEEE" Foreground="#FFFF9800"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <TextBlock Name="OverallProgressText" Text="0% Complete" Margin="0,0,20,0" 
-                                              Foreground="#FF666666" FontSize="11"/>
-                                    <TextBlock Name="EstimatedTimeText" Text="Estimated time: --" 
-                                              Foreground="Gray" FontSize="11"/>
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                                <Button Name="PauseMigrationButton" Content="⏸️ Pause" 
-                                       Style="{StaticResource ModernButtonStyle}" Click="PauseMigration_Click"/>
-                                <Button Name="StopMigrationButton" Content="⏹️ Stop" 
-                                       Style="{StaticResource DangerButtonStyle}" Click="StopMigration_Click"/>
-                                <Button Name="ExportReportButton" Content="📊 Export Report" 
-                                       Style="{StaticResource ModernButtonStyle}" Click="ExportReport_Click"/>
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="0,0,0,10" 
+                               Text="{Binding MigrationStatus}" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
+                    <DataGrid Margin="0,0,0,10" 
+                              ItemsSource="{Binding MigrationTasks}"
+                              AutoGenerateColumns="False" CanUserAddRows="False" 
+                              IsReadOnly="True" GridLinesVisibility="Horizontal"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Object" Binding="{Binding ObjectName}" Width="150"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding ObjectType}" Width="80"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                            <DataGridTextColumn Header="Progress" Binding="{Binding Progress}" Width="80"/>
+                            <DataGridTextColumn Header="Start Time" Binding="{Binding StartTime}" Width="120"/>
+                            <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" Width="80"/>
+                            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2" Margin="0,10">
+                        <TextBlock Text="Overall Migration Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
+                        <ProgressBar Height="25" Margin="0,5"
+                                     Value="{Binding OverallProgress}" Maximum="100"
+                                     Background="#FFEEEEEE" Foreground="#FFFF9800"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <TextBlock Text="{Binding OverallProgress, StringFormat={}{0}% Complete}" Margin="0,0,20,0" 
+                                       Foreground="#FF666666" FontSize="11"/>
+                            <TextBlock Text="Estimated time: --" Foreground="Gray" FontSize="11"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Style="{StaticResource MigrationButtonStyle}" Content="🚀 Start" Command="{Binding StartMigrationCommand}"/>
+                        <Button Style="{StaticResource ModernButtonStyle}" Content="⏸️ Pause" Command="{Binding PauseMigrationCommand}"/>
+                        <Button Style="{StaticResource DangerButtonStyle}" Content="⏹️ Stop" Command="{Binding StopMigrationCommand}"/>
+                        <Button Style="{StaticResource ModernButtonStyle}" Content="📊 Export Report" Command="{Binding ExportReportCommand}"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
+
             <!-- Validation Tab -->
             <TabItem Header="✅ Validation" FontSize="14">
                 <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <!-- Validation Controls -->
-                    <GroupBox Header="🔍 Validation Tests" Grid.Column="0" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel Margin="15">
-                                <TextBlock Text="Pre-Migration Validation:" FontWeight="Bold" Margin="0,0,0,10"
-                                           Foreground="#FF2C3E50" FontSize="14"/>
-                                <CheckBox Name="ValidateConnectivityCheckBox" Content="🔌 Connectivity Tests" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateVersionCheckBox" Content="📊 Version Compatibility" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateResourcesCheckBox" Content="💾 Resource Availability" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidatePermissionsCheckBox" Content="🔐 Permissions Check" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateNetworkCheckBox" Content="🌐 Network Configuration" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateStorageCheckBox" Content="💽 Storage Configuration" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <Separator Margin="15"/>
-                                <TextBlock Text="Post-Migration Validation:" FontWeight="Bold" Margin="0,0,0,10"
-                                           Foreground="#FF2C3E50" FontSize="14"/>
-                                <CheckBox Name="ValidateServicesCheckBox" Content="⚙️ Service Status" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateVMsCheckBox" Content="💻 VM Functionality" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <CheckBox Name="ValidateNetworkingCheckBox" Content="🔗 Network Connectivity" 
-                                         IsChecked="True" Margin="5" FontSize="12"/>
-                                <Separator Margin="15"/>
-                                <StackPanel>
-                                    <Button Name="SelectAllValidationButton" Content="✅ Select All" 
-                                            Style="{StaticResource ModernButtonStyle}" Click="SelectAllValidation_Click"/>
-                                    <Button Name="ClearAllValidationButton" Content="❌ Clear All" 
-                                            Style="{StaticResource ModernButtonStyle}" Click="ClearAllValidation_Click"/>
-                                </StackPanel>
-                                <Separator Margin="15"/>
-                                <Button Name="RunValidationButton" Content="🔍 Run Validation Tests" 
-                                        Style="{StaticResource BackupButtonStyle}" 
-                                        FontSize="14" Height="45" Click="RunValidation_Click"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </GroupBox>
-                    <!-- Validation Results -->
-                    <GroupBox Header="📋 Validation Results" Grid.Column="1" Margin="5"
-                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Name="CurrentValidationTaskText" Grid.Row="0" Margin="0,0,0,10" 
-                                       Text="Ready to run validation tests" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                            <ScrollViewer Grid.Row="1" Margin="0,0,0,10">
-                                <DataGrid Name="ValidationResultsGrid" 
-                                          AutoGenerateColumns="False" CanUserAddRows="False" 
-                                          IsReadOnly="True" GridLinesVisibility="Horizontal"
-                                          Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Test Name" Binding="{Binding TestName}" Width="200"/>
-                                        <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="100"/>
-                                        <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
-                                        <DataGridTextColumn Header="Recommendation" Binding="{Binding Recommendation}" Width="200"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </ScrollViewer>
-                            <StackPanel Grid.Row="2" Margin="0,10">
-                                <TextBlock Text="Validation Progress:" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
-                                <ProgressBar Name="ValidationProgressBar" Height="25" Margin="0,5"
-                                             Background="#FFEEEEEE" Foreground="#FF4CAF50"/>
-                                <TextBlock Name="ValidationProgressText" Text="0% Complete" 
-                                           HorizontalAlignment="Center" Margin="0,5" Foreground="#FF666666" FontSize="11"/>
-                            </StackPanel>
-                        </Grid>
-                    </GroupBox>
+                    <TextBlock Margin="0,0,0,10" 
+                               Text="{Binding ValidationStatus}" FontWeight="Bold" Foreground="#FF2C3E50" FontSize="12"/>
+                    <DataGrid Margin="0,0,0,10"
+                              ItemsSource="{Binding ValidationResults}"
+                              AutoGenerateColumns="False" CanUserAddRows="False" 
+                              IsReadOnly="True" GridLinesVisibility="Horizontal"
+                              Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" FontSize="11">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Test Name" Binding="{Binding TestName}" Width="200"/>
+                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="100"/>
+                            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                            <DataGridTextColumn Header="Recommendation" Binding="{Binding Recommendation}" Width="200"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Style="{StaticResource BackupButtonStyle}" Content="🔍 Run Validation Tests" Command="{Binding RunValidationCommand}" FontSize="14" Height="45"/>
+                        <Button Style="{StaticResource DangerButtonStyle}" Content="❌ Clear Results" Command="{Binding ClearResultsCommand}" FontSize="14" Height="45"/>
+                    </StackPanel>
                 </Grid>
             </TabItem>
             <!-- Activity Log Tab -->
-            <TabItem Header="📝 Activity Log" FontSize="14" DataContext="{Binding LogViewModel}">
+            <TabItem Header="📝 Activity Log" FontSize="14">
                 <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="151*"/>
-                        <ColumnDefinition Width="1203*"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5" Grid.ColumnSpan="2">
-                        <Button Name="ClearLogButton" Content="🗑️ Clear Log"
-                                Style="{StaticResource ModernButtonStyle}"
-                                Command="{Binding ClearLogCommand}"/>
-                        <Button Name="SaveLogButton" Content="💾 Save Log"
-                                Style="{StaticResource ModernButtonStyle}"
-                                Command="{Binding SaveLogCommand}"/>
-                        <ComboBox Name="LogLevelComboBox" Width="100" Margin="10,0,0,0" SelectedIndex="0" FontSize="11"
-                                  ItemsSource="{Binding LogLevels}"
-                                  SelectedItem="{Binding SelectedLogLevel, Mode=TwoWay}">
-                            <ComboBoxItem Content="All"/>
-                            <ComboBoxItem Content="INFO"/>
-                            <ComboBoxItem Content="WARNING"/>
-                            <ComboBoxItem Content="ERROR"/>
-                        </ComboBox>
-                        <TextBlock Text="↕️ Drag the splitter above to resize"
-                                   VerticalAlignment="Center"
-                                   Margin="20,0,0,0"
-                                   Foreground="#FF999999"
-                                   FontSize="10"
-                                   FontStyle="Italic"/>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                        <Button Style="{StaticResource ModernButtonStyle}" Content="🗑️ Clear Log" Command="{Binding ClearLogCommand}"/>
+                        <Button Style="{StaticResource ModernButtonStyle}" Content="💾 Save Log" Command="{Binding SaveLogCommand}"/>
                     </StackPanel>
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
-                        <TextBox Name="LogTextBox" IsReadOnly="True"
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <TextBox IsReadOnly="True"
                                  FontFamily="Consolas" FontSize="10"
                                  Background="#FF1E1E1E" Foreground="#FFCCCCCC"
                                  AcceptsReturn="True" TextWrapping="Wrap"
@@ -604,5 +352,3 @@
         </TabControl>
     </Grid>
 </Window>
-
-
