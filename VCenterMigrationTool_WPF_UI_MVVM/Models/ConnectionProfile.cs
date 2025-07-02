@@ -1,13 +1,24 @@
-﻿using System.Collections.ObjectModel;
-using VCenterMigrationTool_WPF_UI.Models;
-using VCenterMigrationTool_WPF_UI.Utilities;
-using VCenterMigrationTool_WPF_UI.ViewModels;
+﻿using System;
+using System.Collections.Generic;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace VCenterMigrationTool_WPF_UI.Models
 {
-    public class ConnectionProfile
+    public partial class ConnectionProfile : ObservableObject, ICloneable
     {
-        public ObservableCollection<ConnectionSettings> Profiles { get; set; } = new ObservableCollection<ConnectionSettings>();
-        public string LastUsedProfile { get; set; } = "Default";
+        [ObservableProperty]
+        private List<ConnectionSettings> _profiles = new();
+
+        public object Clone()
+        {
+            var clonedProfile = new ConnectionProfile();
+
+            foreach (var profile in Profiles)
+            {
+                clonedProfile.Profiles.Add((ConnectionSettings)profile.Clone());
+            }
+
+            return clonedProfile;
+        }
     }
 }

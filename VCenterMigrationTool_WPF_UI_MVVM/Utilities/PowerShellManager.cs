@@ -11,12 +11,6 @@ using VCenterMigrationTool_WPF_UI.Models;
 
 namespace VCenterMigrationTool_WPF_UI.Utilities
 {
-    // Interface for logging service to support MVVM
-    public interface ILogService
-    {
-        void LogMessage(string message, string level);
-    }
-
     public class PowerShellManager : IDisposable
     {
         private Runspace? _runspace;

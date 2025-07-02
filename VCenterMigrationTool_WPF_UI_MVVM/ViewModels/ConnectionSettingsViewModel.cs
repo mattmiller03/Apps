@@ -1,17 +1,16 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
-using VCenterMigrationTool_WPF_UI.ViewModels;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using Microsoft.Win32; // Add this namespace
-using System.IO;          // For File operations
-using System.Text.Json;
+using VCenterMigrationTool_WPF_UI.Views;
 
 namespace VCenterMigrationTool_WPF_UI.ViewModels
 {
@@ -27,7 +26,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         [ObservableProperty] private bool isDestConnected;
         [ObservableProperty] private bool _isLoadingProfile;
 
-        private readonly PowerShellManager _psManager; // Or inject via constructor
+        private readonly PowerShellManager _psManager;
         private readonly ILogService _logService;
 
         private bool? _dialogResult;
@@ -45,7 +44,6 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
             _logService = logService ?? throw new ArgumentNullException(nameof(logService));
             LoadConnectionProfiles();
         }
-
 
         [RelayCommand]
         public async Task ConnectSourceAsync()
@@ -110,80 +108,69 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         [RelayCommand]
         public void NewProfile()
         {
-            CurrentSettings = new ConnectionSettings { ProfileName = "New Profile" }; // Create a new ConnectionSettings
-            SelectedProfile = null; // Clear the selected profile
+            CurrentSettings = new ConnectionSettings { ProfileName = "New Profile" };
+            SelectedProfile = null;
         }
 
         [RelayCommand]
         public async Task SaveProfileAsync()
         {
-            // Validate the current settings
-            var results = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
-            var context = new ValidationContext(CurrentSettings, serviceProvider: null, items: null);
-            bool isValid = Validator.TryValidateObject(CurrentSettings, context, (ICollection<System.ComponentModel.DataAnnotations.ValidationResult>)results, validateAllProperties: true);
-
-            if (!isValid)
-            {
-                string errorMessage = string.Join(Environment.NewLine, results.Select(r => r.ErrorMessage));
-                _logService.LogMessage($"Validation failed: {errorMessage}", "ERROR");
-                MessageBox.Show(errorMessage, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            // Check if a profile with the same name already exists
-            var existingProfile = Profiles.FirstOrDefault(p => p.ProfileName == CurrentSettings.ProfileName);
-
-            if (existingProfile != null)
-            {
-                // Prompt the user to overwrite
-                MessageBoxResult result = MessageBox.Show($"A profile with the name '{CurrentSettings.ProfileName}' already exists. Do you want to overwrite it?",
-                                                            "Overwrite Profile?",
-                                                            MessageBoxButton.YesNo,
-                                                            MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.No)
-                {
-                    return; // Don't save if the user chooses not to overwrite
-                }
-
-                // Remove the existing profile
-                Profiles.Remove(existingProfile);
-            }
-
-            // Clone the current settings to avoid modifying the original
-            ConnectionSettings newProfile = (ConnectionSettings)CurrentSettings.Clone();
-
-            // Add the new profile to the Profiles collection
-            Profiles.Add(newProfile);
-
-            // Save the Profiles collection to persistent storage
-            await SaveConnectionProfilesAsync();
-
-            SelectedProfile = newProfile;
-
-            DialogResult = true; // Triggers window close
-        }
-
-        private async Task SaveConnectionProfilesAsync()
-        {
             try
             {
-                // Use ConnectionManager to save the profiles
-                ConnectionProfile profile = new ConnectionProfile { Profiles = Profiles }; // Create a ConnectionProfile object
-                await ConnectionManager.SaveConnectionProfilesAsync(profile.Profiles.ToList(), _logService);
-                _logService.LogMessage("Connection profiles saved successfully.", "INFO");
+                if (!CurrentSettings.IsValid())
+                {
+                    var errors = string.Join("\n", CurrentSettings.GetErrors().Select(e => e.ErrorMessage));
+                    MessageBox.Show($"Please fix the following errors:\n{errors}", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                CurrentSettings.LastUsed = DateTime.Now;
+
+                var clonedProfile = (ConnectionSettings)CurrentSettings.Clone();
+
+                var existingProfile = Profiles.FirstOrDefault(p => p.ProfileName.Equals(clonedProfile.ProfileName, StringComparison.OrdinalIgnoreCase));
+
+                if (existingProfile != null)
+                {
+                    var result = MessageBox.Show(
+                        $"A profile named '{clonedProfile.ProfileName}' already exists. Do you want to overwrite it?",
+                        "Profile Exists",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Profiles.Remove(existingProfile);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                Profiles.Add(clonedProfile);
+
+                var connectionProfile = new ConnectionProfile
+                {
+                    Profiles = Profiles.ToList()
+                };
+
+                await ConnectionManager.SaveConnectionProfilesAsync(connectionProfile, _logService);
+
+                _logService.LogMessage($"Profile '{clonedProfile.ProfileName}' saved successfully.", "INFO");
+                MessageBox.Show($"Profile '{clonedProfile.ProfileName}' saved successfully.", "Save Profile", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                _logService.LogMessage($"Failed to save connection profiles: {ex.Message}", "ERROR");
-                MessageBox.Show($"Failed to save connection profiles: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _logService.LogMessage($"Failed to save profile: {ex.Message}", "ERROR");
+                MessageBox.Show($"Failed to save profile: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         [RelayCommand]
         public async Task LoadProfileAsync()
         {
-            IsLoadingProfile = true; // Disable the button
+            IsLoadingProfile = true;
             try
             {
                 OpenFileDialog openFileDialog = new OpenFileDialog
@@ -221,7 +208,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
             }
             finally
             {
-                IsLoadingProfile = false; // Re-enable the button
+                IsLoadingProfile = false;
             }
         }
 
@@ -234,7 +221,6 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
                 return;
             }
 
-            // Prompt the user to confirm the deletion
             MessageBoxResult result = MessageBox.Show($"Are you sure you want to delete the profile '{SelectedProfile.ProfileName}'?",
                                                         "Delete Profile?",
                                                         MessageBoxButton.YesNo,
@@ -242,18 +228,20 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
 
             if (result == MessageBoxResult.No)
             {
-                return; // Don't delete if the user chooses not to confirm
+                return;
             }
 
-            // Remove the selected profile from the Profiles collection
             Profiles.Remove(SelectedProfile);
 
-            // Save the Profiles collection to persistent storage
-            await SaveConnectionProfilesAsync();
+            var connectionProfile = new ConnectionProfile
+            {
+                Profiles = Profiles.ToList()
+            };
 
-            // Clear the SelectedProfile and CurrentSettings
+            await ConnectionManager.SaveConnectionProfilesAsync(connectionProfile, _logService);
+
             SelectedProfile = null;
-            CurrentSettings = new ConnectionSettings(); // Or create a new empty one
+            CurrentSettings = new ConnectionSettings();
 
             _logService.LogMessage($"Profile deleted successfully.", "INFO");
         }
@@ -286,16 +274,17 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         }
 
         [RelayCommand]
-        public void LoadSelectedProfile()  // Renamed this method
+        public void LoadSelectedProfile()
         {
             if (SelectedProfile != null)
             {
-                // Copy the selected profile's settings to the CurrentSettings
                 CurrentSettings = (ConnectionSettings)SelectedProfile.Clone();
+                SelectedProfile.LastUsed = DateTime.Now;
+                CurrentSettings.LastUsed = DateTime.Now;
 
                 _logService.LogMessage($"Profile '{SelectedProfile.ProfileName}' loaded successfully.", "INFO");
 
-                DialogResult = true; // Close the window
+                DialogResult = true;
             }
             else
             {
@@ -306,7 +295,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         [RelayCommand]
         public void Cancel()
         {
-            DialogResult = false; // Set DialogResult to false when Cancel is clicked
+            DialogResult = false;
         }
 
         private async Task LoadConnectionProfiles()
@@ -317,10 +306,8 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
 
                 if (loadedProfile != null)
                 {
-                    // Clear existing profiles before adding the loaded ones
                     Profiles.Clear();
 
-                    // Add the loaded profiles to the ObservableCollection
                     foreach (var profile in loadedProfile.Profiles)
                     {
                         Profiles.Add(profile);
@@ -335,7 +322,6 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
             }
         }
 
-
         partial void OnSelectedProfileChanged(ConnectionSettings value)
         {
             if (value != null)
@@ -343,7 +329,5 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
                 CurrentSettings = (ConnectionSettings)value.Clone();
             }
         }
-
-        // Add more commands for Save/Load profile, TestConnection, etc.
     }
 }

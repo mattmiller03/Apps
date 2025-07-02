@@ -1,0 +1,259 @@
+﻿<Window x:Class="VCenterMigrationTool_WPF_UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VCenterMigrationTool_WPF_UI.Views"
+        xmlns:viewmodels="clr-namespace:VCenterMigrationTool_WPF_UI.ViewModels"
+        xmlns:converters="clr-namespace:VCenterMigrationTool_WPF_UI.Converters"
+        mc:Ignorable="d"
+        Title="vCenter Migration Tool" Height="979" Width="1222"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <!-- Existing styles from your current implementation -->
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <!-- Your existing button style -->
+        </Style>
+
+        <Style x:Key="ConnectButtonStyle" TargetType="Button" BasedOn="{StaticResource ModernButtonStyle}">
+            <Setter Property="Background" Value="#FF4CAF50"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FF45A049"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Additional styles similar to your previous design -->
+        <Style x:Key="HeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="5,10,5,5"/>
+            <Setter Property="Foreground" Value="#FF2C3E50"/>
+        </Style>
+
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderBrush" Value="#FFDDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#FFF8F9FA">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0" Background="#FF2C3E50" Foreground="White" Height="32">
+            <MenuItem Header="File">
+                <MenuItem Header="🔌 Connect to vCenter" Command="{Binding OpenConnectionSettingsCommand}"/>
+                <MenuItem Header="🔌 Disconnect All" Command="{Binding ConnectionSettingsViewModel.DisconnectAllCommand}"/>
+                <Separator/>
+                <MenuItem Header="📥 Import Configuration" Command="{Binding ImportConfigurationCommand}"/>
+                <MenuItem Header="📤 Export Configuration" Command="{Binding ExportConfigurationCommand}"/>
+                <Separator/>
+                <MenuItem Header="❌ Exit"/>
+            </MenuItem>
+            <MenuItem Header="Tools">
+                <MenuItem Header="⚙️ PowerCLI Configuration"/>
+                <MenuItem Header="🔍 Test Connectivity"/>
+                <MenuItem Header="✅ Validate Prerequisites"/>
+                <Separator/>
+                <MenuItem Header="💾 Connection Settings" Command="{Binding OpenConnectionSettingsCommand}"/>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="📖 Documentation"/>
+                <MenuItem Header="ℹ️ About"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Content Area -->
+        <TabControl Grid.Row="1" Margin="10">
+            <!-- Connection Tab -->
+            <TabItem Header="🔌 Connection">
+                <Grid Margin="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Source vCenter Connection -->
+                    <Border Grid.Column="0" Margin="10" Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" CornerRadius="5">
+                        <StackPanel Margin="20">
+                            <TextBlock Text="📍 Source vCenter" Style="{StaticResource HeaderTextStyle}"/>
+
+                            <TextBlock Text="Server:" Margin="0,10,0,5"/>
+                            <TextBox Text="{Binding ConnectionSettingsViewModel.CurrentSettings.SourceServer, Mode=TwoWay}" 
+                                     Style="{StaticResource ModernTextBoxStyle}"/>
+
+                            <TextBlock Text="Username:" Margin="0,10,0,5"/>
+                            <TextBox Text="{Binding ConnectionSettingsViewModel.CurrentSettings.SourceUsername, Mode=TwoWay}" 
+                                     Style="{StaticResource ModernTextBoxStyle}"/>
+
+                            <TextBlock Text="Password:" Margin="0,10,0,5"/>
+                            <PasswordBox Name="SourcePasswordBox" 
+                                         PasswordChanged="SourcePasswordBox_PasswordChanged"/>
+
+                            <Button Content="🔌 Connect" 
+                                    Command="{Binding ConnectionSettingsViewModel.ConnectSourceCommand}"
+                                    Style="{StaticResource ConnectButtonStyle}" 
+                                    Margin="0,20,0,10"/>
+
+                            <TextBlock Text="{Binding ConnectionSettingsViewModel.SourceStatus}" 
+                                       Foreground="{Binding ConnectionSettingsViewModel.IsSourceConnected, Converter={StaticResource BoolToColorConverter}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Destination vCenter Connection -->
+                    <Border Grid.Column="1" Margin="10" Background="White" BorderBrush="#FFDDDDDD" BorderThickness="1" CornerRadius="5">
+                        <StackPanel Margin="20">
+                            <TextBlock Text="🎯 Destination vCenter" Style="{StaticResource HeaderTextStyle}"/>
+
+                            <TextBlock Text="Server:" Margin="0,10,0,5"/>
+                            <TextBox Text="{Binding ConnectionSettingsViewModel.CurrentSettings.DestinationServer, Mode=TwoWay}" 
+                                     Style="{StaticResource ModernTextBoxStyle}"/>
+
+                            <TextBlock Text="Username:" Margin="0,10,0,5"/>
+                            <TextBox Text="{Binding ConnectionSettingsViewModel.CurrentSettings.DestinationUsername, Mode=TwoWay}" 
+                                     Style="{StaticResource ModernTextBoxStyle}"/>
+
+                            <TextBlock Text="Password:" Margin="0,10,0,5"/>
+                            <PasswordBox Name="DestPasswordBox" 
+                                         PasswordChanged="DestPasswordBox_PasswordChanged"/>
+
+                            <Button Content="🔌 Connect" 
+                                    Command="{Binding ConnectionSettingsViewModel.ConnectDestCommand}"
+                                    Style="{StaticResource ConnectButtonStyle}" 
+                                    Margin="0,20,0,10"/>
+
+                            <TextBlock Text="{Binding ConnectionSettingsViewModel.DestStatus}" 
+                                       Foreground="{Binding ConnectionSettingsViewModel.IsDestConnected, Converter={StaticResource BoolToColorConverter}}"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Migration Tab -->
+            <TabItem Header="🚀 Migration Tasks" FontSize="14">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Migration Task Selection -->
+                    <GroupBox Grid.Row="0" Header="🔍 Migration Task Selection" Margin="0,0,0,10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="300">
+                            <StackPanel>
+                                <!-- Infrastructure Tasks -->
+                                <TextBlock Text="🏗️ Infrastructure Tasks" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <CheckBox Content="📁 VM Folders" 
+                              IsChecked="{Binding MigrationViewModel.MigrateFolders}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="🏊 Resource Pools" 
+                              IsChecked="{Binding MigrationViewModel.MigrateResourcePools}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="📡 Virtual Distributed Switches (vDS)" 
+                              IsChecked="{Binding MigrationViewModel.MigrateVDS}"
+                              Margin="10,0,0,5"/>
+
+                                <!-- Access Control Tasks -->
+                                <TextBlock Text="🔐 Access Control Tasks" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <CheckBox Content="🛡️ Permissions" 
+                              IsChecked="{Binding MigrationViewModel.MigratePermissions}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="👥 Roles" 
+                              IsChecked="{Binding MigrationViewModel.MigrateRoles}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="👤 User Groups" 
+                              IsChecked="{Binding MigrationViewModel.MigrateGroups}"
+                              Margin="10,0,0,5"/>
+
+                                <!-- Compute Tasks -->
+                                <TextBlock Text="💻 Compute Tasks" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <CheckBox Content="🖥️ Hosts" 
+                              IsChecked="{Binding MigrationViewModel.MigrateHosts}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="💻 Virtual Machines" 
+                              IsChecked="{Binding MigrationViewModel.MigrateVMs}"
+                              Margin="10,0,0,5"/>
+
+                                <!-- Advanced Options -->
+                                <TextBlock Text="⚙️ Advanced Options" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <CheckBox Content="🔧 Preserve Network Configurations" 
+                              IsChecked="{Binding MigrationViewModel.PreserveNetworkConfig}"
+                              Margin="10,0,0,5"/>
+                                <CheckBox Content="💾 Migrate Storage Policies" 
+                              IsChecked="{Binding MigrationViewModel.MigrateStoragePolicies}"
+                              Margin="10,0,0,5"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </GroupBox>
+
+                    <!-- Existing Migration Tasks DataGrid and Progress sections remain the same as in previous example -->
+                    <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding MigrationViewModel.MigrationTasks}"
+                  AutoGenerateColumns="False" 
+                  CanUserAddRows="False" 
+                  IsReadOnly="True" 
+                  GridLinesVisibility="Horizontal"
+                  Background="White" 
+                  BorderBrush="#FFDDDDDD" 
+                  BorderThickness="1" 
+                  FontSize="11">
+                        <!-- ... (previous DataGrid configuration) ... -->
+                    </DataGrid>
+
+                    <!-- Overall Migration Progress -->
+                    <Grid Grid.Row="2" Margin="0,10">
+                        <!-- ... (previous progress bar configuration) ... -->
+                    </Grid>
+
+                    <!-- Migration Control Buttons -->
+                    <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,10,0,0">
+                        <Button Content="🔍 Validate Selected Tasks" 
+                    Command="{Binding MigrationViewModel.ValidateSelectedTasksCommand}"
+                    Style="{StaticResource ModernButtonStyle}"
+                    Margin="0,0,10,0"/>
+
+                        <Button Content="🚀 Start Migration" 
+                    Command="{Binding MigrationViewModel.StartMigrationCommand}"
+                    Style="{StaticResource MigrationButtonStyle}"
+                    IsEnabled="{Binding MigrationViewModel.IsMigrationInProgress, Converter={StaticResource InverseBooleanConverter}}"
+                    Margin="0,0,10,0"/>
+
+                        <Button Content="⏸️ Pause" 
+                    Command="{Binding MigrationViewModel.PauseMigrationCommand}"
+                    Style="{StaticResource ModernButtonStyle}"
+                    IsEnabled="{Binding MigrationViewModel.IsMigrationInProgress}"
+                    Margin="0,0,10,0"/>
+
+                        <Button Content="⏹️ Stop" 
+                    Command="{Binding MigrationViewModel.StopMigrationCommand}"
+                    Style="{StaticResource DangerButtonStyle}"
+                    IsEnabled="{Binding MigrationViewModel.IsMigrationInProgress}"
+                    Margin="0,0,10,0"/>
+
+                        <Button Content="📊 Export Report" 
+                    Command="{Binding MigrationViewModel.ExportReportCommand}"
+                    Style="{StaticResource ModernButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+
+            <!-- Other tabs can follow a similar pattern -->
+        </TabControl>
+    </Grid>
+</Window>

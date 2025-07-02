@@ -11,6 +11,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Models\LogViewModel.cs" />
 	  <Compile Remove="Utilities\Archive_PowerShellManager.cs" />
 	</ItemGroup>
 
@@ -23,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="MainWindow.xaml.cs">
+	  <Compile Update="Views\MainWindow.xaml.cs">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Compile>
 	  <Compile Update="Utilities\ConnectionManager.cs">

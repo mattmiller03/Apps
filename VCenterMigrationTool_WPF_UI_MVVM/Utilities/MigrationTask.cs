@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace VCenterMigrationTool_WPF_UI.Models
+namespace VCenterMigrationTool_WPF_UI.Utilities
 {
     public class MigrationTask : INotifyPropertyChanged
     {
@@ -134,18 +134,18 @@ namespace VCenterMigrationTool_WPF_UI.Models
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
     public enum MigrationStatus
     {
         Pending,
+        Queued,
         InProgress,
         Completed,
         Failed,
-        Cancelled,
-        Queued
+        Cancelled
     }
 
     public enum MigrationType

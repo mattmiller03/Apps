@@ -1,35 +1,16 @@
-﻿using System;
-using VCenterMigrationTool_WPF_UI.Models;
-using VCenterMigrationTool_WPF_UI.Utilities;
-using VCenterMigrationTool_WPF_UI.ViewModels;
-
-namespace VCenterMigrationTool_WPF_UI
+﻿namespace VCenterMigrationTool_WPF_UI.Models
 {
-    public enum LogLevel
-    {
-        DEBUG,
-        INFO,
-        WARNING,
-        ERROR,
-        FATAL
-    }
-
     public class LogEntry
     {
-        public LogEntry(DateTime timestamp, LogLevel level, string message)
+        public DateTime Timestamp { get; }
+        public string Level { get; }
+        public string Message { get; }
+
+        public LogEntry(DateTime timestamp, string level, string message)
         {
             Timestamp = timestamp;
             Level = level;
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-        }
-
-        public DateTime Timestamp { get; }
-        public LogLevel Level { get; }
-        public string Message { get; }
-
-        public override string ToString()
-        {
-            return $"[{Timestamp:HH:mm:ss}] [{Level}] {Message}";
+            Message = message;
         }
     }
 }

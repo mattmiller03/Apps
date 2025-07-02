@@ -1,7 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.ViewModels;
-using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Views;
 
 namespace VCenterMigrationTool_WPF_UI
 {
@@ -11,18 +12,26 @@ namespace VCenterMigrationTool_WPF_UI
         {
             base.OnStartup(e);
 
-            // Create the ViewModels
-            LogViewModel logViewModel = new LogViewModel();
-            LogServiceAdapter logService = new LogServiceAdapter(logViewModel);
-            PowerShellManager psManager = new PowerShellManager(logService);
-            MainViewModel mainViewModel = new MainViewModel(psManager, logService);
+            try
+            {
+                // Initialize core services
+                var logViewModel = new LogViewModel();
+                var logService = new LogServiceAdapter(logViewModel);
+                var psManager = new PowerShellManager(logService);
 
-            // Create the Main Window and set the DataContext
-            MainWindow mainWindow = new MainWindow();
-            mainWindow.DataContext = mainViewModel;
+                // Create main ViewModel
+                var mainViewModel = new MainViewModel(psManager, logService);
 
-            // Show the Main Window
-            mainWindow.Show();
+                // Create and show main window programmatically
+                var mainWindow = new MainWindow(mainViewModel);
+                mainWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Application startup failed: {ex.Message}", "Startup Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown();
+            }
         }
     }
 }
