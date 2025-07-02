@@ -135,5 +135,10 @@ namespace VCenterMigrationTool_WPF_UI
                 MessageBox.Show(this, text, caption, MessageBoxButton.OK, icon));
         }
         #endregion
+
+        private void DisconnectAll_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
