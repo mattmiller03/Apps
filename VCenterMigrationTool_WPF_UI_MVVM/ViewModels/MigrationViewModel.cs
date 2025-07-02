@@ -45,16 +45,24 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
 
         // New properties for granular selection
         [ObservableProperty]
-        private ObservableCollection<HostInfo> _availableHosts = new();
+        private ObservableCollection<VMHost> _availableVMHosts = new();
 
         [ObservableProperty]
         private ObservableCollection<VMInfo> _availableVMs = new();
 
         [ObservableProperty]
-        private bool _isSelectingHosts;
+        private bool _isSelectingVMHosts;
 
         [ObservableProperty]
         private bool _isSelectingVMs;
+
+       public MigrationViewModel(PowerShellManager powerShellManager, ILogService logService)
+           {
+               _powerShellManager = powerShellManager
+                   ?? throw new ArgumentNullException(nameof(powerShellManager));
+               _logService        = logService
+                  ?? throw new ArgumentNullException(nameof(logService));
+           }
 
         [RelayCommand]
         private async Task StartMigrationAsync()
@@ -65,24 +73,24 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
                 MigrationStatus = $"Migration started at {DateTime.Now:T}";
                 OverallProgress = 0;
 
-                // Get selected hosts and VMs
-                var selectedHosts = GetSelectedHosts();
+                // Get selected VMHosts and VMs
+                var selectedVMHosts = GetSelectedVMHosts();
                 var selectedVMs = GetSelectedVMs();
 
                 // Clear previous migration tasks
                 _migrationTasks.Clear();
 
-                // Create migration tasks for selected hosts
-                foreach (var host in selectedHosts)
+                // Create migration tasks for selected VMHosts
+                foreach (var VMHost in selectedVMHosts)
                 {
-                    var hostTask = new MigrationTask
+                    var VMHostTask = new MigrationTask
                     {
-                        ObjectName = host.Name,
-                        ObjectType = "Host",
+                        ObjectName = VMHost.Name,
+                        ObjectType = "VMHost",
                         Status = Utilities.MigrationStatus.Queued, // Use the enum from MigrationTask
                         StartTime = DateTime.Now
                     };
-                    _migrationTasks.Add(hostTask);
+                    _migrationTasks.Add(VMHostTask);
                 }
 
                 // Create migration tasks for selected VMs
@@ -145,11 +153,11 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         }
 
         [RelayCommand]
-        private async Task DiscoverHostsAsync()
+        private async Task DiscoverVMHostsAsync()
         {
             try
             {
-                AvailableHosts.Clear();
+                AvailableVMHosts.Clear();
                 AvailableVMs.Clear();
 
                 // Get all datacenters
@@ -162,46 +170,46 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
 
                     foreach (var cluster in clusters)
                     {
-                        // Get hosts for each cluster
-                        var hosts = await _powerShellManager.GetHostsAsync(cluster);
+                        // Get VMHosts for each cluster
+                        var VMHosts = await _powerShellManager.GetVMHostsAsync(cluster);
 
-                        foreach (var host in hosts)
+                        foreach (var VMHost in VMHosts)
                         {
-                            // Enhance host info with additional details
-                            host.Cluster = cluster.Name;
-                            host.DataCenter = datacenter.Name;
-                            host.IsSelected = false;
+                            // Enhance VMHost info with additional details
+                            VMHost.Cluster = cluster.Name;
+                            VMHost.DataCenter = datacenter.Name;
+                            VMHost.IsSelected = false;
 
-                            // Discover VMs for each host
-                            var vms = await _powerShellManager.GetVMsAsync(host);
+                            // Discover VMs for each VMHost
+                            var vms = await _powerShellManager.GetVMsAsync(VMHost);
 
-                            host.VirtualMachines.Clear(); // Ensure clean list
+                            VMHost.VirtualMachines.Clear(); // Ensure clean list
                             foreach (var vm in vms)
                             {
                                 // Enhance VM info with additional details
-                                vm.HostName = host.Name;
+                                vm.VMHostName = VMHost.Name;
                                 vm.Cluster = cluster.Name;
                                 vm.DataCenter = datacenter.Name;
                                 vm.IsSelected = false;
 
-                                // Add VM to host's virtual machines and global VM list
-                                host.VirtualMachines.Add(vm);
+                                // Add VM to VMHost's virtual machines and global VM list
+                                VMHost.VirtualMachines.Add(vm);
                                 AvailableVMs.Add(vm);
                             }
 
-                            AvailableHosts.Add(host);
+                            AvailableVMHosts.Add(VMHost);
                         }
                     }
                 }
 
-                IsSelectingHosts = true;
-                MigrationStatus = $"Discovered {AvailableHosts.Count} hosts";
-                _logService.LogMessage($"Hosts discovered successfully: {AvailableHosts.Count} hosts", "INFO");
+                IsSelectingVMHosts = true;
+                MigrationStatus = $"Discovered {AvailableVMHosts.Count} VMHosts";
+                _logService.LogMessage($"VMHosts discovered successfully: {AvailableVMHosts.Count} VMHosts", "INFO");
             }
             catch (Exception ex)
             {
-                _logService.LogMessage($"Host discovery failed: {ex.Message}", "ERROR");
-                MigrationStatus = "Host discovery failed";
+                _logService.LogMessage($"VMHost discovery failed: {ex.Message}", "ERROR");
+                MigrationStatus = "VMHost discovery failed";
             }
         }
 
@@ -212,8 +220,8 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
             {
                 if (AvailableVMs.Count == 0)
                 {
-                    // Trigger host discovery if no VMs are found
-                    return DiscoverHostsAsync();
+                    // Trigger VMHost discovery if no VMs are found
+                    return DiscoverVMHostsAsync();
                 }
 
                 IsSelectingVMs = true;
@@ -230,10 +238,10 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
             }
         }
 
-        // Method to get selected hosts and VMs
-        private List<HostInfo> GetSelectedHosts()
+        // Method to get selected VMHosts and VMs
+        private List<VMHost> GetSelectedVMHosts()
         {
-            return AvailableHosts.Where(h => h.IsSelected).ToList();
+            return AvailableVMHosts.Where(h => h.IsSelected).ToList();
         }
 
         private List<VMInfo> GetSelectedVMs()
@@ -246,18 +254,18 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         {
             try
             {
-                var selectedHosts = GetSelectedHosts();
+                var selectedVMHosts = GetSelectedVMHosts();
                 var selectedVMs = GetSelectedVMs();
 
                 // Perform validation logic
-                _logService.LogMessage($"Validating {selectedHosts.Count} hosts and {selectedVMs.Count} VMs", "INFO");
+                _logService.LogMessage($"Validating {selectedVMHosts.Count} VMHosts and {selectedVMs.Count} VMs", "INFO");
 
                 // Validate migration configuration
                 var validationErrors = new List<string>();
 
-                if (selectedHosts.Count == 0 && selectedVMs.Count == 0)
+                if (selectedVMHosts.Count == 0 && selectedVMs.Count == 0)
                 {
-                    validationErrors.Add("No hosts or VMs selected for migration");
+                    validationErrors.Add("No VMHosts or VMs selected for migration");
                 }
 
                 if (!MigrateFolders && !MigrateResourcePools && !MigrateVDS)
@@ -273,7 +281,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
                 }
                 else
                 {
-                    MigrationStatus = $"Validated {selectedHosts.Count} hosts and {selectedVMs.Count} VMs";
+                    MigrationStatus = $"Validated {selectedVMHosts.Count} VMHosts and {selectedVMs.Count} VMs";
                 }
             }
             catch (Exception ex)

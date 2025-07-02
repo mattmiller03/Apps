@@ -57,27 +57,27 @@ namespace VCenterMigrationTool_WPF_UI.Models
         }
     }
 
-    public enum HostConnectionState
+    public enum VMHostConnectionState
     {
         Connected,
         Disconnected,
         NotResponding
     }
 
-    public class HostInfo : InventoryItemBase
+    public class VMHost : InventoryItemBase
     {
-        private HostConnectionState _connectionState;
+        private VMHostConnectionState _connectionState;
         private bool _isSelected;
         private string _cluster = string.Empty;
         private string _dataCenter = string.Empty;
         private List<VMInfo> _virtualMachines = new();
 
-        public HostInfo(string name, string id, HostConnectionState connectionState) : base(name, id)
+        public VMHost(string name, string id, VMHostConnectionState connectionState) : base(name, id)
         {
             _connectionState = connectionState;
         }
 
-        public HostConnectionState ConnectionState
+        public VMHostConnectionState ConnectionState
         {
             get { return _connectionState; }
             protected set
@@ -157,7 +157,7 @@ namespace VCenterMigrationTool_WPF_UI.Models
     {
         private VMPowerState _powerState;
         private bool _isSelected;
-        private string _hostName = string.Empty;
+        private string _VMHostName = string.Empty;
         private string _cluster = string.Empty;
         private string _dataCenter = string.Empty;
         private string _configuredSize = string.Empty;
@@ -193,14 +193,14 @@ namespace VCenterMigrationTool_WPF_UI.Models
             }
         }
 
-        public string HostName
+        public string VMHostName
         {
-            get { return _hostName; }
+            get { return _VMHostName; }
             set
             {
-                if (_hostName != value)
+                if (_VMHostName != value)
                 {
-                    _hostName = value;
+                    _VMHostName = value;
                     OnPropertyChanged();
                 }
             }
