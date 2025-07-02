@@ -12,6 +12,9 @@
 
     <Window.Resources>
         <!-- Existing styles from your current implementation -->
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
         <Style x:Key="ModernButtonStyle" TargetType="Button">
             <!-- Your existing button style -->
         </Style>
