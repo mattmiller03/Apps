@@ -12,12 +12,13 @@ using VCenterMigrationTool_WPF_UI.Infrastructure;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 
-namespace VCenterMigrationTool_WPF_UI;
-
-public class ValidationResult
+namespace VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces
 {
-    public string TestName { get; set; } = string.Empty;
-    public string Result { get; set; } = string.Empty;
-    public string Details { get; set; } = string.Empty;
-    public string Recommendation { get; set; } = string.Empty;
+    public interface ILogger
+    {
+        void Info(string message);
+        void Warn(string message);
+        void Error(string message);
+        event Action<string, string> MessageWritten;
+    }
 }

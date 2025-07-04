@@ -4,16 +4,16 @@
         xmlns:ui="http://schemas.modernwpf.com/2019"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        ui:WindowHelper.UseModernWindowStyle="True"
         mc:Ignorable="d"
         Title="vCenter Migration Tool v1.0" 
         Height="1059" Width="1400"
         WindowStartupLocation="CenterScreen"
-        WindowState="Normal"
-        ui:WindowHelper.UseModernWindowStyle="True">
+        WindowState="Normal">
 
     <Window.Resources>
         <!-- Modern Button Styles with ModernWPF Integration -->
-        <Style x:Key="ModernButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#FF007ACC"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -77,13 +77,13 @@
         </Style>
 
         <!-- Input Styles with ModernWPF -->
-        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="5"/>
             <Setter Property="FontSize" Value="12"/>
         </Style>
 
-        <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource DefaultPasswordBoxStyle}">
+        <Style x:Key="ModernPasswordBoxStyle" TargetType="PasswordBox">
             <Setter Property="Padding" Value="8"/>
             <Setter Property="Margin" Value="5"/>
             <Setter Property="FontSize" Value="12"/>
@@ -143,93 +143,67 @@
         <TabControl Grid.Row="1" Name="MainTabControl" Margin="10">
 
             <!-- Connection Tab -->
-            <TabItem Header="🔌 Connection" FontSize="14">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+            <TabItem Header="Connection">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <!-- Source vCenter -->
-                        <GroupBox Header="📍 Source vCenter 7.x" Grid.Column="0" Margin="10">
-                            <StackPanel Margin="20">
-                                <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter7.domain.local"/>
+                    <!-- Source vCenter Selection -->
+                    <GroupBox Header="Source vCenter" Grid.Row="0">
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox ItemsSource="{Binding ConnectionManager.ServerProfiles}"
+                          DisplayMemberPath="ProfileName"
+                          SelectedItem="{Binding ConnectionManager.SelectedSourceProfile}"
+                          Width="300"
+                          Margin="5"/>
 
-                                <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="SourceUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                            <Button Content="Test Connection"
+                        Command="{Binding ConnectionManager.TestSourceConnectionCommand}"
+                        Width="120"
+                        Margin="5"/>
+                        </StackPanel>
+                    </GroupBox>
 
-                                <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="SourcePasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
+                    <!-- Destination vCenter Selection -->
+                    <GroupBox Header="Destination vCenter" Grid.Row="1">
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox ItemsSource="{Binding ConnectionManager.ServerProfiles}"
+                          DisplayMemberPath="ProfileName"
+                          SelectedItem="{Binding ConnectionManager.SelectedDestinationProfile}"
+                          Width="300"
+                          Margin="5"/>
 
-                                <Button Name="ConnectSourceButton" Content="🔗 Connect to Source" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectSource_Click" Margin="5,20,5,5" Height="40"/>
-                            </StackPanel>
-                        </GroupBox>
+                            <Button Content="Test Connection"
+                        Command="{Binding ConnectionManager.TestDestinationConnectionCommand}"
+                        Width="120"
+                        Margin="5"/>
+                        </StackPanel>
+                    </GroupBox>
 
-                        <!-- Destination vCenter -->
-                        <GroupBox Header="🎯 Destination vCenter 8.x" Grid.Column="1" Margin="10">
-                            <StackPanel Margin="20">
-                                <TextBlock Text="vCenter Server:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestVCenterTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="vcenter8.domain.local"/>
+                    <!-- Connection Management -->
+                    <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
+                        <Button Content="Manage Profiles..."
+                    Command="{Binding ConnectionManager.OpenProfileManagerCommand}"
+                    Width="120"
+                    Margin="5"/>
 
-                                <TextBlock Text="Username:" Style="{StaticResource HeaderTextStyle}"/>
-                                <TextBox Name="DestUsernameTextBox" Style="{StaticResource ModernTextBoxStyle}"
-                                         Text="administrator@vsphere.local"/>
+                        <Button Content="Disconnect All"
+                    Command="{Binding ConnectionManager.DisconnectAllCommand}"
+                    Width="120"
+                    Margin="5"/>
+                    </StackPanel>
 
-                                <TextBlock Text="Password:" Style="{StaticResource HeaderTextStyle}"/>
-                                <PasswordBox Name="DestPasswordBox" Style="{StaticResource ModernPasswordBoxStyle}"/>
-
-                                <Button Name="ConnectDestButton" Content="🔗 Connect to Destination" 
-                                        Style="{StaticResource ConnectButtonStyle}" 
-                                        Click="ConnectDest_Click" Margin="5,20,5,5" Height="40"/>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <!-- Connection Status -->
-                        <GroupBox Header="📊 Connection Status" Grid.Row="1" Grid.ColumnSpan="2" Margin="10">
-                            <Grid Margin="20">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Source Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="SourceStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="SourceVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="Destination Connection:" FontWeight="Bold" Margin="0,0,0,5" FontSize="14"/>
-                                    <TextBlock Name="DestStatusText" Text="❌ Not Connected" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Red"/>
-                                    <TextBlock Name="DestVersionText" Text="Version: Unknown" 
-                                              Style="{StaticResource StatusTextStyle}" Foreground="Gray"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Vertical">
-                                    <Button Name="TestConnectionButton" Content="🔍 Test Connections" 
-                                            Style="{StaticResource ModernButtonStyle}" Click="TestConnection_Click"/>
-                                    <Button Name="DisconnectButton" Content="🔌 Disconnect All" 
-                                            Style="{StaticResource DangerButtonStyle}" Click="DisconnectAll_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </GroupBox>
-                    </Grid>
-                </ScrollViewer>
+                    <!-- Status Area -->
+                    <StatusBar Grid.Row="3">
+                        <TextBlock Text="{Binding ConnectionManager.ConnectionStatus}"/>
+                        <ProgressBar Width="100" Height="20" 
+                        IsIndeterminate="{Binding ConnectionManager.IsBusy}"/>
+                    </StatusBar>
+                </Grid>
             </TabItem>
 
             <!-- Backup Tab -->
@@ -258,7 +232,7 @@
                                 <CheckBox Name="BackupCertificatesCheckBox" Content="📜 Certificates" 
                                          Margin="5" IsChecked="False" FontSize="12"/>
                                 <CheckBox Name="BackupIdentityCheckBox" Content="🆔 Identity Sources" 
-                                         Margin="5" IsChecked="False" FontSize="12"/>
+                                         Margin="5" IsChecked="False" FontSize="12" Checked="BackupIdentityCheckBox_Checked"/>
 
                                 <Separator Margin="10"/>
                                 <TextBlock Text="Infrastructure Backups:" FontWeight="Bold" Margin="0,0,0,10"

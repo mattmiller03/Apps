@@ -1,4 +1,12 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using VCenterMigrationTool_WPF_UI.Infrastructure;
+using VCenterMigrationTool_WPF_UI.Models;
+using VCenterMigrationTool_WPF_UI.Utilities;
 
 namespace VCenterMigrationTool_WPF_UI.Models;  // Updated namespace to match Models folder convention
 

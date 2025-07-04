@@ -12,12 +12,13 @@ using VCenterMigrationTool_WPF_UI.Infrastructure;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 
-namespace VCenterMigrationTool_WPF_UI;
-
-public class ValidationResult
+namespace VCenterMigrationTool_WPF_UI.Models
 {
-    public string TestName { get; set; } = string.Empty;
-    public string Result { get; set; } = string.Empty;
-    public string Details { get; set; } = string.Empty;
-    public string Recommendation { get; set; } = string.Empty;
+    public class PrerequisiteValidation
+    {
+        public bool VersionCompatible { get; set; }
+        public bool StorageAvailable { get; set; }
+        public bool NetworkAccessible { get; set; }
+        public List<string> Warnings { get; set; } = new List<string>();
+    }
 }

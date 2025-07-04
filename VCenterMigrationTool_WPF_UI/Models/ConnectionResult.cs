@@ -12,12 +12,12 @@ using VCenterMigrationTool_WPF_UI.Infrastructure;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 
-namespace VCenterMigrationTool_WPF_UI;
-
-public class ValidationResult
+namespace VCenterMigrationTool_WPF_UI.Models
 {
-    public string TestName { get; set; } = string.Empty;
-    public string Result { get; set; } = string.Empty;
-    public string Details { get; set; } = string.Empty;
-    public string Recommendation { get; set; } = string.Empty;
+    public class ConnectionResult
+    {
+        public bool IsConnected { get; set; }
+        public string Version { get; set; }
+        public string ErrorMessage { get; set; }
+    }
 }
