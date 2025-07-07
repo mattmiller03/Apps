@@ -9,10 +9,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using VCenterMigrationTool_WPF_UI.Infrastructure;
-using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 
-namespace VCenterMigrationTool_WPF_UI;
+namespace VCenterMigrationTool_WPF_UI.Models;
 
 public class ValidationResult
 {

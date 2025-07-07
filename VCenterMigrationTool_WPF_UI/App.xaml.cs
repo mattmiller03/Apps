@@ -1,15 +1,18 @@
 ﻿// App.xaml.cs
-using System;
-using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
 using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.ViewModels;
 using VCenterMigrationTool_WPF_UI.Views;
+using VCenterMigrationTool_WPF_UI.Views.Pages;
 
 namespace VCenterMigrationTool_WPF_UI
 {
@@ -43,10 +46,8 @@ namespace VCenterMigrationTool_WPF_UI
                     services.AddSingleton<ConnectionManager>();
 
                     // ViewModels & Windows
-                    services.AddSingleton<MainViewModel>();
-                    services.AddSingleton<MainWindow>();
-                    services.AddTransient<ConnectionSettingsViewModel>();
-                    services.AddTransient<ConnectionSettingsWindow>();
+                    services.AddSingleton<DashBoardViewModel>();
+                    services.AddTransient<SettingsViewModel>();
                 })
                 .Build();
         }
@@ -70,6 +71,14 @@ namespace VCenterMigrationTool_WPF_UI
                           .ConfigureAwait(false);
             }
             base.OnExit(e);
+
+        }
+        /// <summary>
+        /// Occurs when an exception is thrown by an application but not handled.
+        /// </summary>
+        private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
         }
     }
 }

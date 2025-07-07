@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Newtonsoft.Json;
+using Wpf.Ui.Mvvm;  // for ApplicationThemeManager
 using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.ObjectModel;
@@ -19,13 +20,13 @@ using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.ViewModels;
 
-namespace VCenterMigrationTool_WPF_UI
+namespace VCenterMigrationTool_WPF_UI.Views.Pages
 {
     public partial class MainWindow : Window
     {
         private readonly Logger _logger;
         private readonly PowerShellManager _psManager;
-        private readonly MainViewModel _viewModel;
+        private readonly DashBoardViewModel _viewModel;
         private CancellationTokenSource _cts;
 
         public MainWindow()
@@ -37,7 +38,7 @@ namespace VCenterMigrationTool_WPF_UI
             var app = (App)Application.Current;
             _logger = app.Services.GetRequiredService<Logger>();
             _psManager = app.Services.GetRequiredService<PowerShellManager>();
-            _viewModel = app.Services.GetRequiredService<MainViewModel>();
+            _viewModel = app.Services.GetRequiredService<DashBoardViewModel>();
         }
 
         protected override void OnContentRendered(EventArgs e)
@@ -417,7 +418,7 @@ namespace VCenterMigrationTool_WPF_UI
 
         }
 
-        private void ScopeComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ScopeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
         }
@@ -484,7 +485,7 @@ namespace VCenterMigrationTool_WPF_UI
                 Directory.CreateDirectory(archiveDirectory);
 
                 // Configure save dialog
-                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                var saveDialog = new SaveFileDialog
                 {
                     InitialDirectory = logsDirectory,
                     Filter = "Log Files (*.log)|*.log|Text Files (*.txt)|*.txt|All Files (*.*)|*.*",

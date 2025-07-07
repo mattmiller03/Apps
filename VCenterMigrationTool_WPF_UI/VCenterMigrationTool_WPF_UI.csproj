@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CredentialManagement" Version="1.0.2" />
+		<PackageReference Include="Meziantou.Framework.Win32.CredentialManager" Version="1.7.4" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.6" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
@@ -21,10 +21,10 @@
 		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0-preview.5.25277.114" />
 		<PackageReference Include="Microsoft.WindowsAPICodePack-Shell" Version="1.1.0" />
 		<PackageReference Include="Microsoft.PowerShell.SDK" Version="7.5.1" />
-		<PackageReference Include="ModernWPF" Version="2.0.0-alpha97" />
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
 		<PackageReference Include="System.Management.Automation" Version="7.5.1" />
 		<PackageReference Include="System.Text.Json" Version="9.0.6" />
+		<PackageReference Include="WPF-UI" Version="4.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,6 +55,10 @@
 	    <Generator>SettingsSingleFileGenerator</Generator>
 	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
 	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Assets\" />
 	</ItemGroup>
 
 </Project>

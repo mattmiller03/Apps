@@ -1,12 +1,13 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Wpf.Ui.Appearance;
 using VCenterMigrationTool_WPF_UI.ViewModels;
 
-namespace VCenterMigrationTool_WPF_UI.Views
+namespace VCenterMigrationTool_WPF_UI.Views.Pages
 {
     public partial class ConnectionSettingsWindow : Window
     {
-        public ConnectionSettingsWindow(ConnectionSettingsViewModel viewModel)
+        public SettingsPage(SettingsViewModel viewModel)
         {
             InitializeComponent();
 
@@ -19,7 +20,7 @@ namespace VCenterMigrationTool_WPF_UI.Views
 
         private void OnPasswordBoxChanged(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ConnectionSettingsViewModel vm &&
+            if (DataContext is SettingsViewModel vm &&
                 sender is PasswordBox passwordBox)
             {
                 vm.SelectedProfilePassword = passwordBox.SecurePassword;

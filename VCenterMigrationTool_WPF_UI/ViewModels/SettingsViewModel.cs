@@ -5,13 +5,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security;
+using Wpf.Ui.Appearance;
 using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 
 namespace VCenterMigrationTool_WPF_UI.ViewModels
 {
-    public class ConnectionSettingsViewModel : INotifyPropertyChanged
+    public class SettingsViewModel : INotifyPropertyChanged
     {
         private readonly IProfileManager _profileManager;
         private readonly ICredentialManager _credentialManager;
@@ -72,7 +73,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
         public RelayCommand SaveProfileCommand { get; }
         public RelayCommand DeleteProfileCommand { get; }
 
-        public ConnectionSettingsViewModel(
+        public SettingsViewModel(
             IProfileManager profileManager,
             ICredentialManager credentialManager)
         {

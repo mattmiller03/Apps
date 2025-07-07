@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 
-namespace VCenterMigrationTool_WPF_UI.Utilities
+namespace VCenterMigrationTool_WPF_UI.Models
 {
     public class PowerShellManager
     {

@@ -6,8 +6,8 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using Wpf.Ui.Appearance;
 using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
-using VCenterMigrationTool_WPF_UI.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
@@ -16,7 +16,7 @@ using VCenterMigrationTool_WPF_UI.Models;
 
 namespace VCenterMigrationTool_WPF_UI.ViewModels
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class DashBoardViewModel : INotifyPropertyChanged
     {
         private readonly IProfileManager _profileManager;
         private readonly PowerShellManager _psManager;
@@ -66,7 +66,7 @@ namespace VCenterMigrationTool_WPF_UI.ViewModels
 
         // Add other missing properties as needed...
 
-        public MainViewModel(IProfileManager profileManager, PowerShellManager psManager)
+        public DashBoardViewModel(IProfileManager profileManager, PowerShellManager psManager)
         {
             _profileManager = profileManager;
             _psManager = psManager;
