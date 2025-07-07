@@ -1,24 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using VCenterMigrationTool_WPF_UI.Infrastructure;
+﻿using System.Collections.Generic;
 using VCenterMigrationTool_WPF_UI.Models;
-using VCenterMigrationTool_WPF_UI.Utilities;
 
 namespace VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces
 {
+    /// <summary>
+    /// Manages loading/saving of ConnectionProfile metadata.
+    /// Passwords should be handled separately via ICredentialManager.
+    /// </summary>
     public interface IProfileManager
     {
         IEnumerable<ConnectionProfile> GetAllProfiles();
-        ConnectionProfile GetProfile(string name);
+        ConnectionProfile GetProfile(string profileName);
         void SaveProfile(ConnectionProfile profile);
-        void DeleteProfile(string name);
+        void DeleteProfile(string profileName);
     }
 }

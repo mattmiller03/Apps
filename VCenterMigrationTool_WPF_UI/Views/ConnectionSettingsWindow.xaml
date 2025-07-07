@@ -62,7 +62,7 @@
                          Grid.Row="2" Grid.Column="1" Margin="5"/>
 
                 <TextBlock Text="Password:" Grid.Row="3" Grid.Column="0" Margin="5" VerticalAlignment="Center"/>
-                <PasswordBox x:Name="pwdPassword"
+                <PasswordBox x:Name="PasswordBox"
                             PasswordChanged="PasswordBox_PasswordChanged"
                             Grid.Row="3" Grid.Column="1" Margin="5"/>
 

@@ -1,8 +1,10 @@
 ﻿// App.xaml.cs
+using System;
+using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using System.Windows;
+using Microsoft.Extensions.Hosting;
 using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
@@ -13,41 +15,61 @@ namespace VCenterMigrationTool_WPF_UI
 {
     public partial class App : Application
     {
-        public IServiceProvider ServiceProvider { get; private set; }
-        public IConfiguration Configuration { get; private set; }
+        public static IHost AppHost { get; private set; }
 
-        protected override void OnStartup(StartupEventArgs e)
+        public App()
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            AppHost = Host.CreateDefaultBuilder()
+                .ConfigureAppConfiguration((ctx, cfg) =>
+                {
+                    cfg.SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                       .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                })
+                .ConfigureServices((ctx, services) =>
+                {
+                    IConfiguration config = ctx.Configuration;
 
-            Configuration = builder.Build();
+                    // CORRECT overload: Configure<T>(IConfigurationSection)
+                    services.Configure<AppSettings>(config.GetSection("AppSettings"));
 
-            var serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
+                    // your interfaces → implementations
+                    services.AddSingleton<ILogger, Logger>();
+                    services.AddSingleton<ICredentialManager, WindowsCredentialManager>();
+                    services.AddSingleton<IProfileManager, JsonProfileManager>();
+                    services.AddSingleton<IPowerShellScriptManager, PowerShellScriptManager>();
 
-            ServiceProvider = serviceCollection.BuildServiceProvider();
+                    // re‐add your real PowerShellManager from your repo
+                    services.AddSingleton<PowerShellManager>();
+                    services.AddSingleton<ConnectionManager>();
 
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+                    // ViewModels & Windows
+                    services.AddSingleton<MainViewModel>();
+                    services.AddSingleton<MainWindow>();
+                    services.AddTransient<ConnectionSettingsViewModel>();
+                    services.AddTransient<ConnectionSettingsWindow>();
+                })
+                .Build();
         }
 
-        private void ConfigureServices(IServiceCollection services)
+        protected override async void OnStartup(StartupEventArgs e)
         {
-            // Configure AppSettings
-            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            await AppHost.StartAsync()
+                      .ConfigureAwait(false);
 
-            // Register other services
-            services.AddSingleton<ILogger, Logger>();
-            services.AddSingleton<IPowerShellScriptManager, PowerShellScriptManager>();
-            services.AddSingleton<ICredentialManager, WindowsCredentialManager>();
-            services.AddSingleton<MainViewModel>();
-            services.AddSingleton<MainWindow>();
+            var mainWindow = AppHost.Services.GetRequiredService<MainWindow>();
+            mainWindow.Show();
 
-            // Register ViewModels and Windows
-            services.AddTransient<ConnectionSettingsViewModel>();
-            services.AddTransient<ConnectionSettingsWindow>();
+            base.OnStartup(e);
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            using (AppHost)
+            {
+                await AppHost.StopAsync(TimeSpan.FromSeconds(5))
+                          .ConfigureAwait(false);
+            }
+            base.OnExit(e);
         }
     }
 }
