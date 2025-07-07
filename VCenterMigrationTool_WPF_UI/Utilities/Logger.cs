@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 
 namespace VCenterMigrationTool_WPF_UI.Utilities
 {
-    public class Logger
+    public class Logger : ILogger
     {
-        public event Action<string, string> MessageLogged;
+        public event Action<string, string> MessageWritten;
 
         public void Info(string message) => Log(message, "INFO");
         public void Warn(string message) => Log(message, "WARN");
@@ -17,9 +14,9 @@ namespace VCenterMigrationTool_WPF_UI.Utilities
 
         private void Log(string message, string level)
         {
-            var formattedMessage = $"[{DateTime.Now:HH:mm:ss}] [{level}] {message}";
-            Debug.WriteLine(formattedMessage);
-            MessageLogged?.Invoke(message, level);
+            var formatted = $"[{DateTime.Now:HH:mm:ss}] [{level}] {message}";
+            Debug.WriteLine(formatted);
+            MessageWritten?.Invoke(message, level);
         }
     }
 }

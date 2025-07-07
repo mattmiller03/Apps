@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Windows;
+using VCenterMigrationTool_WPF_UI.Infrastructure.Interfaces;
 using VCenterMigrationTool_WPF_UI.Models;
 using VCenterMigrationTool_WPF_UI.Utilities;
 using VCenterMigrationTool_WPF_UI.ViewModels;
@@ -38,9 +39,9 @@ namespace VCenterMigrationTool_WPF_UI
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
 
             // Register other services
-            services.AddSingleton<Logger>();
-            services.AddSingleton<PowerShellManager>();
-            services.AddSingleton<ConnectionManager>();
+            services.AddSingleton<ILogger, Logger>();
+            services.AddSingleton<IPowerShellScriptManager, PowerShellScriptManager>();
+            services.AddSingleton<ICredentialManager, WindowsCredentialManager>();
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>();
 
